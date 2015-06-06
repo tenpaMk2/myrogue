@@ -4,6 +4,7 @@ __author__ = 'tenpa'
 
 from position import PositionAndDirection
 
+# TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 
 
 class MapModel(object):
@@ -98,13 +99,11 @@ class Floor(NonObstacleObject):
 
 
 class Wall(ObstacleObject):
-    isObstacle = True
     pose_icon = '='
     comment = "It's a wall."
 
 
 class People(ObstacleObject):
-    isObstacle = True
     pose_icon = 'P'
     comment = "It's a people."
 
@@ -122,12 +121,12 @@ class People(ObstacleObject):
 
         if self.dq_map.is_empty_place_at(front_position):
             self.position_and_direction.move_towards(direction)
-            self.throw_message("move to {0}".format(direction))
+            # self.throw_message("move to {0}".format(direction))
         else:
-            self.throw_message("Ouch!! {0} is obstacle.".format(direction))
+            # self.throw_message("Ouch!! {0} is obstacle.".format(direction))
 
-    def throw_message(self, message: str):
-        self.dq_map.set_message(self, message)
+    # def throw_message(self, message: str):
+    #     self.dq_map.set_message(self, message)
 
     def get_front_position(self):
         return self.position_and_direction.get_front_position()
