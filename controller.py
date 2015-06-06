@@ -6,8 +6,7 @@ import model
 import view
 import observer
 
-# TODO controllerの実装
-
+# FIXME ControllerはHeroを知ってないとだめだ。
 
 class Controller(object):
     def __init__(self, observable: "observer.Observable", map_model: "model.MapModel", viewer: "view.Viewer"):
@@ -19,8 +18,11 @@ class Controller(object):
 
     def start_input(self):
         self.viewer.draw_message_before_input()
-        character = input()
-        self.viewer.draw_message_after_input(character)
+        arg = input()
+        self.viewer.draw_message_after_input(arg)
 
+    def input_parser(self, arg):
+        if arg in (0, 'S'):
+            pass
 
 

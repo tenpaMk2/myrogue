@@ -12,6 +12,7 @@ import observer
 # Observable
 # Model
 # Viewer
+# Hero
 # Controller
 # の順番である。
 
