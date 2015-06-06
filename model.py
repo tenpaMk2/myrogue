@@ -3,17 +3,21 @@
 __author__ = 'tenpa'
 
 from position import PositionAndDirection
+import observer
 
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
+# TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 
 
 class MapModel(object):
     # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
 
-    def __init__(self, size: (int, int)):
+    def __init__(self, observable: "observer.Observable", size: (int, int)):
         (self.height, self.width) = size
-        self.message = ''
+        self.observable = observable
+        self.observer = observable.create_observer()
 
+        self.message = ''
         self.floor_list = []
         self.obstacle_list = []
 
@@ -24,7 +28,7 @@ class MapModel(object):
         for y in range(self.height):
             for x in range(self.width):
                 pos_and_dir = PositionAndDirection([y, x])
-                self.floor_list.append(Floor(self, pos_and_dir))
+                self.floor_list.append(Floor(self.observable, self, pos_and_dir))
 
     def clear_message(self):
         self.message = ""
@@ -58,13 +62,13 @@ class MapModel(object):
             for x in range(self.width):
                 if y == 0 or y == self.height - 1 or x == 0 or x == self.width - 1:
                     pos_and_dir = PositionAndDirection([y, x])
-                    self.obstacle_list.append(Wall(self, pos_and_dir))
+                    self.obstacle_list.append(Wall(self.observable, self, pos_and_dir))
 
     def resister_map_object(self, map_object: "MapObject"):
         self.obstacle_list.append(map_object)
 
         self.set_message(map_object, "resister {0}".format(map_object.get_position()))
-        # self.draw_map()
+        self.observer.update()
 
 
 # 全てのマップオブジェクトの基本となるクラス
@@ -72,15 +76,23 @@ class MapObject(object):
     pose_icon = ' '
     comment = "ERROR!! I'm Map_Object."
 
-    def __init__(self, dq_map: "MapModel", pos_and_dir: PositionAndDirection):
-        self.dq_map = dq_map
-        self.position_and_direction = pos_and_dir
+    def __init__(self,
+                 observable: "observer.Observable",
+                 map_model: "MapModel",
+                 pos_and_dir: PositionAndDirection):
+        self.observer = observable.create_observer()
+        self.map_model = map_model
+        self.pos_and_dir = pos_and_dir
+
         self.icon = self.pose_icon
 
+        # TODO 既にこの座標にオブジェクトが存在していないかチェック。
+
     def get_position(self):
-        return self.position_and_direction.get_position()
+        return self.pos_and_dir.get_position()
 
 
+# TODO isObstacleの名称はまずいか? 変数とメソッドの区別がつかない。
 # 通行不可のマップオブジェクト
 class ObstacleObject(MapObject):
     isObstacle = True
@@ -107,38 +119,32 @@ class People(ObstacleObject):
     pose_icon = 'P'
     comment = "It's a people."
 
-    def __init__(self, dq_map: "MapModel", pos_and_dir: "PositionAndDirection"):
-        super().__init__(dq_map, pos_and_dir)
-        self.dq_map = dq_map
-        self.position_and_direction = pos_and_dir
-
-        # TODO マップの中で、立ってて大丈夫な場所なのかどうかチェック
-
     def move_to(self, direction: int):
         # directionの方向の座標を取得
-        self.position_and_direction.set_direction(direction)
-        front_position = self.position_and_direction.get_front_position()
+        self.pos_and_dir.set_direction(direction)
+        front_position = self.pos_and_dir.get_front_position()
+        self.observer.update()
 
-        if self.dq_map.is_empty_place_at(front_position):
-            self.position_and_direction.move_towards(direction)
-            # self.throw_message("move to {0}".format(direction))
+        if self.map_model.is_empty_place_at(front_position):
+            self.pos_and_dir.move_towards(direction)
+            self.throw_message("move to {0}".format(direction))
         else:
-            # self.throw_message("Ouch!! {0} is obstacle.".format(direction))
+            self.throw_message("Ouch!! {0} is obstacle.".format(direction))
 
-    # def throw_message(self, message: str):
-    #     self.dq_map.set_message(self, message)
+    def throw_message(self, message: str):
+        self.map_model.set_message(self, message)
 
     def get_front_position(self):
-        return self.position_and_direction.get_front_position()
+        return self.pos_and_dir.get_front_position()
 
     def get_position_y(self):
-        return self.position_and_direction.get_position_y()
+        return self.pos_and_dir.get_position_y()
 
     def get_position_x(self):
-        return self.position_and_direction.get_position_x()
+        return self.pos_and_dir.get_position_x()
 
     def get_direction(self):
-        return self.position_and_direction.get_direction()
+        return self.pos_and_dir.get_direction()
 
     def get_icon(self):
         return self.icon
@@ -147,21 +153,15 @@ class People(ObstacleObject):
 class Villager(People):
     pose_icon = "V"
 
-    def __init__(self, dq_map: "MapModel", pos_and_dir: PositionAndDirection, comment="__init__"):
-        super().__init__(dq_map, pos_and_dir)
+    def __init__(self,
+                 observable: "observer.Observable",
+                 map_model: "MapModel",
+                 pos_and_dir: PositionAndDirection,
+                 comment: str="__init__"):
+        super().__init__(observable, map_model, pos_and_dir)
         self.comment = comment
 
-    @property
-    def comment(self):
-        return self._comment
-
-    @comment.setter
-    def comment(self, comment: str):
-        if not isinstance(comment, str):
-            raise TypeError("comment must be strings")
-        self._comment = comment
-
-    def get_response(self):
+    def get_comment(self):
         return self.comment
 
 
@@ -173,19 +173,14 @@ class Hero(People):
         super().move_to(direction)
 
         self.update_icon()
-        # self.dq_map.draw_map()
 
     def update_icon(self):
-        self.icon = self.direction_icon_list[self.position_and_direction.get_direction()]
+        self.icon = self.direction_icon_list[self.pos_and_dir.get_direction()]
+        self.observer.update()
 
     def run(self):
         self.move_to(self.get_direction())
 
     def interact_to_front(self):
-        self.dq_map.interact(self)
-
-
-if __name__ == "__main__":
-    map_model = MapModel([5, 20])
-
+        self.map_model.interact(self)
 
