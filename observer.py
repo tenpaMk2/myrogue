@@ -21,6 +21,8 @@ class Observable(object):
             observer.view = viewer
         self.viewer = viewer
 
+        print("Successfully changed observer's viewer!")
+
 
 # View-Model-Observerで循環参照してるので、初回だけはviewerにはNoneが入る。後でセットされる。
 class Observer(object):

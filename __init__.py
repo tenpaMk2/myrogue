@@ -8,6 +8,13 @@ import model
 import view
 import observer
 
+# 生成する順番は
+# Observable
+# Model
+# Viewer
+# Controller
+# の順番である。
+
 obs = observer.Observable()
 map_model = model.MapModel(obs, [5, 20])
 viewer = view.Viewer(obs, map_model)
