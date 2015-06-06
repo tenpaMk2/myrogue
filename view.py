@@ -42,3 +42,11 @@ class Viewer(object):
         print('#' * self.map_model.width)
         print("# " + self.map_model.message)
         print('#' * self.map_model.width + '\n')
+
+    def draw_message_before_input(self):
+        pass
+
+    def draw_message_after_input(self, input_message):
+        print('>' * self.map_model.width, end='')
+        print(' ', end='')
+        print(input_message)

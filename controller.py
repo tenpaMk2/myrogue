@@ -17,3 +17,10 @@ class Controller(object):
         self.map_model = map_model
         self.viewer = viewer
 
+    def start_input(self):
+        self.viewer.draw_message_before_input()
+        character = input()
+        self.viewer.draw_message_after_input(character)
+
+
+
