@@ -5,3 +5,5 @@ __author__ = 'tenpa'
 import model
 import view
 import observer
+
+# TODO controllerの実装

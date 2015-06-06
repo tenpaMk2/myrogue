@@ -40,8 +40,9 @@ class MapModel(object):
     def interact(self, people: "People"):
         object_front_position = people.get_front_position()
         interact_object = self.get_map_object_by_position(object_front_position)
+
         self.set_message(interact_object, interact_object.comment)
-        # self.draw_map()
+        self.observer.update()
 
     def get_map_object_by_position(self, position: "PositionAndDirection"):
         for obstacle in self.obstacle_list:
@@ -123,7 +124,6 @@ class People(ObstacleObject):
         # directionの方向の座標を取得
         self.pos_and_dir.set_direction(direction)
         front_position = self.pos_and_dir.get_front_position()
-        self.observer.update()
 
         if self.map_model.is_empty_place_at(front_position):
             self.pos_and_dir.move_towards(direction)
@@ -136,12 +136,6 @@ class People(ObstacleObject):
 
     def get_front_position(self):
         return self.pos_and_dir.get_front_position()
-
-    def get_position_y(self):
-        return self.pos_and_dir.get_position_y()
-
-    def get_position_x(self):
-        return self.pos_and_dir.get_position_x()
 
     def get_direction(self):
         return self.pos_and_dir.get_direction()
@@ -173,14 +167,13 @@ class Hero(People):
         super().move_to(direction)
 
         self.update_icon()
+        self.observer.update()
 
     def update_icon(self):
         self.icon = self.direction_icon_list[self.pos_and_dir.get_direction()]
-        self.observer.update()
 
     def run(self):
         self.move_to(self.get_direction())
 
     def interact_to_front(self):
         self.map_model.interact(self)
-
