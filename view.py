@@ -18,7 +18,7 @@ class Viewer(object):
         self.draw_message()
 
     def draw_map(self):
-        map_list = [[None for x in range(self.map_model.width)] for y in range(self.map_model.height)]
+        map_list = [[None for _ in range(self.map_model.width)] for _ in range(self.map_model.height)]
 
         for floor_object in self.map_model.floor_list:
             position = floor_object.get_position()
@@ -43,10 +43,10 @@ class Viewer(object):
         print("# " + self.map_model.message)
         print('#' * self.map_model.width)
 
-    def draw_message_before_input(self):
+    @staticmethod
+    def draw_message_before_input():
         print('')
         print('')
-        pass
 
     def draw_message_after_input(self, input_message):
         print('>' * self.map_model.width, end='')
