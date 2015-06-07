@@ -8,6 +8,7 @@ import observer
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 # TODO ターンの概念を導入する必要が有る。Observerのupdateもその辺が肝になるはず。
+# TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
 
 
 class MapModel(object):
@@ -56,7 +57,7 @@ class MapModel(object):
 
         raise Exception("map is collapsed!!!!")
 
-    def set_message(self, map_object, message: str):
+    def set_message(self, map_object: "MapObject", message: str):
         self.message = "{0} >{1}".format(map_object.pose_icon, message)
 
     def make_map_edge(self):
