@@ -138,7 +138,7 @@ class People(ObstacleObject):
         return self.pos_and_dir.get_front_position()
 
     def get_direction(self):
-        return self.pos_and_dir.get_direction()
+        return self.pos_and_dir.direction
 
     def get_icon(self):
         return self.icon
@@ -170,10 +170,10 @@ class Hero(People):
         self.observer.update()
 
     def update_icon(self):
-        self.icon = self.direction_icon_list[self.pos_and_dir.get_direction()]
+        self.icon = self.direction_icon_list[self.pos_and_dir.direction]
 
     def run(self):
-        self.move_to(self.get_direction())
+        self.move_to(self.pos_and_dir.direction)
 
     def interact_to_front(self):
         self.map_model.interact(self)

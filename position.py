@@ -31,10 +31,6 @@ class PositionAndDirection(object):
     def get_position(self):
         return self.position
 
-    # TODO getter系を全部書き換えよう
-    def get_direction(self):
-        return self.direction
-
     @property
     def position(self):
         return self._position
