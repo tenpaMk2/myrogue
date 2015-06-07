@@ -31,13 +31,6 @@ class PositionAndDirection(object):
     def get_position(self):
         return self.position
 
-    # TODO こいつらもself.position_yとかで外部からアクセスできるようにしよう。
-    def get_position_y(self):
-        return self.position[0]
-
-    def get_position_x(self):
-        return self.position[1]
-
     # TODO getter系を全部書き換えよう
     def get_direction(self):
         return self.direction
