@@ -13,16 +13,20 @@ DIRECTION_MOVE_LIST = ([-1, 0], [0, 1], [1, 0], [0, -1])
 
 
 class PositionAndDirectionFactory(object):
-    def make_north_p(self, position):
+    @staticmethod
+    def make_north_p(position):
         return PositionAndDirection(position, DIRECTION_LIST['n'])
 
-    def make_east_p(self, position):
+    @staticmethod
+    def make_east_p(position):
         return PositionAndDirection(position, DIRECTION_LIST['e'])
 
-    def make_south_p(self, position):
+    @staticmethod
+    def make_south_p(position):
         return PositionAndDirection(position, DIRECTION_LIST['s'])
 
-    def make_west_p(self, position):
+    @staticmethod
+    def make_west_p(position):
         return PositionAndDirection(position, DIRECTION_LIST['w'])
 
 
