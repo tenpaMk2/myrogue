@@ -9,7 +9,7 @@ import observer
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 # TODO ターンの概念を導入する必要が有る。Observerのupdateもその辺が肝になるはず。
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
-
+# TODO Okmrさんに言われた通り、HeroのMove系メソッドはupdateを伴うので親クラスと違う名前にしよう。
 
 class MapModel(object):
     # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
