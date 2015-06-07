@@ -24,13 +24,13 @@ class Controller(object):
 
     def input_parser(self, arg):
         if arg in (0, 'S', 's'):
-            self.hero.move_to(0)
+            self.hero.move_south()
         elif arg in (1, 'E', 'e'):
-            self.hero.move_to(1)
+            self.hero.move_east()
         elif arg in (2, 'N', 'n'):
-            self.hero.move_to(2)
+            self.hero.move_north()
         elif arg in (3, 'W', 'w'):
-            self.hero.move_to(3)
+            self.hero.move_west()
         elif arg in ('a', 'A'):
             self.hero.interact_to_front()
         elif arg in ('r', 'R'):

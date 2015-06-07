@@ -11,6 +11,7 @@ class Observable(object):
         self.viewer = None
 
     def create_observer(self):
+        # noinspection PyTypeChecker
         new_observer = Observer(self.viewer)
         self.observer_list.append(new_observer)
 

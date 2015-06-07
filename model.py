@@ -7,6 +7,7 @@ import observer
 
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
+# TODO ターンの概念を導入する必要が有る。Observerのupdateもその辺が肝になるはず。
 
 
 class MapModel(object):
@@ -80,7 +81,7 @@ class MapObject(object):
     def __init__(self,
                  observable: "observer.Observable",
                  map_model: "MapModel",
-                 pos_and_dir: PositionAndDirection):
+                 pos_and_dir: "PositionAndDirection"):
         self.observer = observable.create_observer()
         self.map_model = map_model
         self.pos_and_dir = pos_and_dir
@@ -120,16 +121,30 @@ class People(ObstacleObject):
     pose_icon = 'P'
     comment = "It's a people."
 
-    def move_to(self, direction: int):
-        # directionの方向の座標を取得
-        self.pos_and_dir.set_direction(direction)
+    def run(self):
         front_position = self.pos_and_dir.get_front_position()
 
         if self.map_model.is_empty_place_at(front_position):
-            self.pos_and_dir.move_towards(direction)
-            self.throw_message("move to {0}".format(direction))
+            self.pos_and_dir.run()
+            self.throw_message("move to {0}".format(self.pos_and_dir.get_direction_by_charcter()))
         else:
-            self.throw_message("Ouch!! {0} is obstacle.".format(direction))
+            self.throw_message("Ouch!! {0} is obstacle.".format(self.pos_and_dir.get_direction_by_charcter()))
+
+    def move_north(self):
+        self.pos_and_dir.turn_north()
+        self.run()
+
+    def move_east(self):
+        self.pos_and_dir.turn_east()
+        self.run()
+
+    def move_south(self):
+        self.pos_and_dir.turn_south()
+        self.run()
+
+    def move_west(self):
+        self.pos_and_dir.turn_west()
+        self.run()
 
     def throw_message(self, message: str):
         self.map_model.set_message(self, message)
@@ -161,19 +176,15 @@ class Villager(People):
 
 class Hero(People):
     pose_icon = '@'
-    direction_icon_list = ['v', '>', '^', '<']
-
-    def move_to(self, direction: int):
-        super().move_to(direction)
-
-        self.update_icon()
-        self.observer.update()
+    direction_icon_list = ['^', '>', 'v', '<']
 
     def update_icon(self):
         self.icon = self.direction_icon_list[self.pos_and_dir.direction]
 
     def run(self):
-        self.move_to(self.pos_and_dir.direction)
+        super().run()
+        self.update_icon()
+        self.observer.update()
 
     def interact_to_front(self):
         self.map_model.interact(self)
