@@ -30,8 +30,10 @@ map_model.resister_map_object(hero)
 map_model.resister_map_object(villager1)
 map_model.resister_map_object(villager2)
 
-my_keyboard = controller.Controller(obs, map_model, viewer)
-my_keyboard.start_input()
+my_keyboard = controller.Controller(obs, hero, viewer)
+
+while True:
+    my_keyboard.start_input()
 
 
 
