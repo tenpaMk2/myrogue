@@ -129,7 +129,7 @@ class People(ObstacleObject):
             self.pos_and_dir.run()
             self.throw_message("move to {0}".format(self.pos_and_dir.get_direction_by_charcter()))
         else:
-            self.throw_message("Ouch!! {0} is obstacle.".format(self.pos_and_dir.get_direction_by_charcter()))
+            self.throw_message("Ouch!! Obstacle is at {0}.".format(self.pos_and_dir.get_direction_by_charcter()))
 
     def move_north(self):
         self.pos_and_dir.turn_north()

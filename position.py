@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
-# TODO enumerateを使ってdirectionを定義し直した方がいいか?
 
 NUM_DIRECTION = dict(enumerate([
     'n',
