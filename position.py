@@ -3,67 +3,68 @@
 __author__ = 'tenpa'
 # TODO enumerateを使ってdirectionを定義し直した方がいいか?
 
-DIRECTION_LIST = {
-    'n': 0,
-    'e': 1,
-    's': 2,
-    'w': 3
-}
-DIRECTION_MOVE_LIST = ([-1, 0], [0, 1], [1, 0], [0, -1])
+NUM_DIRECTION = dict(enumerate([
+    'n',
+    'e',
+    's',
+    'w']))
+DIRECTION_NUM = dict(zip(NUM_DIRECTION.values(), NUM_DIRECTION.keys()))
+
+DIRECTION_MOVE = ([-1, 0], [0, 1], [1, 0], [0, -1])
 
 
 class PositionAndDirectionFactory(object):
     @staticmethod
     def make_north_p(position):
-        return PositionAndDirection(position, DIRECTION_LIST['n'])
+        return PositionAndDirection(position, DIRECTION_NUM['n'])
 
     @staticmethod
     def make_east_p(position):
-        return PositionAndDirection(position, DIRECTION_LIST['e'])
+        return PositionAndDirection(position, DIRECTION_NUM['e'])
 
     @staticmethod
     def make_south_p(position):
-        return PositionAndDirection(position, DIRECTION_LIST['s'])
+        return PositionAndDirection(position, DIRECTION_NUM['s'])
 
     @staticmethod
     def make_west_p(position):
-        return PositionAndDirection(position, DIRECTION_LIST['w'])
+        return PositionAndDirection(position, DIRECTION_NUM['w'])
 
 
 class PositionAndDirection(object):
-    def __init__(self, position, direction=0):
+    def __init__(self, position, direction=DIRECTION_NUM['n']):
         self.position = position
         self.direction = direction
 
     def __move_towards(self, direction):
         self.direction = direction
 
-        self.position[0] += DIRECTION_MOVE_LIST[direction][0]
-        self.position[1] += DIRECTION_MOVE_LIST[direction][1]
+        self.position[0] += DIRECTION_MOVE[direction][0]
+        self.position[1] += DIRECTION_MOVE[direction][1]
 
     def move_north(self):
-        self.__move_towards(DIRECTION_LIST['n'])
+        self.__move_towards(DIRECTION_NUM['n'])
 
     def move_east(self):
-        self.__move_towards(DIRECTION_LIST['e'])
+        self.__move_towards(DIRECTION_NUM['e'])
 
     def move_south(self):
-        self.__move_towards(DIRECTION_LIST['s'])
+        self.__move_towards(DIRECTION_NUM['s'])
 
     def move_west(self):
-        self.__move_towards(DIRECTION_LIST['w'])
+        self.__move_towards(DIRECTION_NUM['w'])
 
     def turn_north(self):
-        self.direction = DIRECTION_LIST['n']
+        self.direction = DIRECTION_NUM['n']
 
     def turn_east(self):
-        self.direction = DIRECTION_LIST['e']
+        self.direction = DIRECTION_NUM['e']
 
     def turn_south(self):
-        self.direction = DIRECTION_LIST['s']
+        self.direction = DIRECTION_NUM['s']
 
     def turn_west(self):
-        self.direction = DIRECTION_LIST['w']
+        self.direction = DIRECTION_NUM['w']
 
     def run(self):
         self.__move_towards(self.direction)
@@ -72,8 +73,8 @@ class PositionAndDirection(object):
         self.direction = direction
 
     def get_front_position(self):
-        front_y = self.position[0] + DIRECTION_MOVE_LIST[self.direction][0]
-        front_x = self.position[1] + DIRECTION_MOVE_LIST[self.direction][1]
+        front_y = self.position[0] + DIRECTION_MOVE[self.direction][0]
+        front_x = self.position[1] + DIRECTION_MOVE[self.direction][1]
         return [front_y, front_x]
 
     def get_position(self):
@@ -100,6 +101,6 @@ class PositionAndDirection(object):
         self._direction = direction
 
     def get_direction_by_charcter(self):
-        for key in DIRECTION_LIST:
-            if DIRECTION_LIST[key] == self.direction:
+        for key in DIRECTION_NUM:
+            if DIRECTION_NUM[key] == self.direction:
                 return key
