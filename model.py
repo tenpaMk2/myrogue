@@ -125,11 +125,12 @@ class People(ObstacleObject):
     def run(self):
         front_position = self.pos_and_dir.get_front_position()
 
+        dir_word = self.pos_and_dir.get_direction_by_word()
         if self.map_model.is_empty_place_at(front_position):
             self.pos_and_dir.run()
-            self.throw_message("move to {0}".format(self.pos_and_dir.get_direction_by_charcter()))
+            self.throw_message("move to {0}".format(dir_word))
         else:
-            self.throw_message("Ouch!! Obstacle is at {0}.".format(self.pos_and_dir.get_direction_by_charcter()))
+            self.throw_message("Ouch!! Obstacle is at {0}.".format(dir_word))
 
     def move_north(self):
         self.pos_and_dir.turn_north()

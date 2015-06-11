@@ -105,7 +105,5 @@ class PositionAndDirection(object):
     def get_direction_by_character(self):
         return NUM_TO_DIRECTION[self.direction]
 
-    # def get_direction_by_word(self):
-    #     for key in DIRECTION_TO_NUM:
-    #         if DIRECTION_TO_NUM[key] == self.direction:
-    #             return key
+    def get_direction_by_word(self):
+        return DIRECTION_WORD[self.direction]
