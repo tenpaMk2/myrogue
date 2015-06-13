@@ -123,6 +123,7 @@ class Wall(ObstacleObject):
 class People(ObstacleObject):
     pose_icon = 'P'
     comment = "It's a people."
+    turn_period = 5 # FIXME パラメータの概念をそろそろ導入しないと
 
     def run(self):
         front_position = self.pos_and_dir.get_front_position()
@@ -192,3 +193,7 @@ class Hero(People):
 
     def interact_to_front(self):
         self.map_model.interact(self)
+
+    def __end_turn(self):
+        self.observer.update_turn_end()
+

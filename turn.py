@@ -2,6 +2,9 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+import model
+import observer
+
 # TODO queueが空の場合のIndexErrorを対処した方が良いかも?
 
 class TurnManager(object):
@@ -9,65 +12,87 @@ class TurnManager(object):
         self.queue = []
         self.total_turn_count = 0
 
-    def register(self, next_turn_time: int, callable_obje):
+    def register(self, turn_queue_entry: "TurnQueueEntry"):
         # まずは追加。その後に次回ターンまでの時間でソートする。
-        self.queue.append([next_turn_time, callable_obje])
-        self.queue.sort(key=lambda x: x[0])
+        self.queue.append(turn_queue_entry)
+        self.queue.sort(key=lambda x: x.next_turn_time)
 
     def update(self):
-        current_pair = self.queue.pop(0)
-        spent_time = current_pair[0]
-        current_obje = current_pair[1]
+        current_entry = self.queue.pop(0)
+        spent_time = current_entry.next_turn_time
 
         self.__decrease_turn_time(spent_time)
-        current_obje.start_turn()
+        current_entry.start_turn()
 
     def __decrease_turn_time(self, decreasing_time: int):
-        self.queue = list(map(
-            lambda x: [x[0] - decreasing_time, x[1]],
-            self.queue
-        ))
+        for entry in self.queue:
+            entry.decrease_turn_time(decreasing_time)
 
-    def __str__(self):
-        print_str = "<turn stack list>\n"
+    def _print_queue(self):
+        print("<-----queue----->")
+        for entry in self.queue:
+            print("remain time = {0}: {1}".format(entry.next_turn_time, entry.observer.__dict__))
 
-        for pair in self.queue:
-            print_str += "[{0}, \"{1}\"]\n".format(
-                pair[0],
-                pair[1].name
-            )
+class TurnQueueEntry(object):
+    def __init__(self):
+        self.observer = None
+        self.next_turn_time = 0
 
-        return print_str
+    def decrease_turn_time(self, decreasing_time: int):
+        self.next_turn_time -= decreasing_time
+
+    def start_turn(self):
+        pass
+
+
+class HeroTurnQueueEntry(TurnQueueEntry):
+    def __init__(self, observer: "observer.Observer", turn_period: int):
+        self.observer = observer
+        self.next_turn_time = turn_period
+
+    def start_turn(self):
+        self.observer.update_turn_start()
+
+
+class TurnQueueFactory(object):
+    @staticmethod
+    def make_hero_turn_queue(observer: "observer.Observer", turn_period: int):
+        return HeroTurnQueueEntry(observer, turn_period)
+
+        # @staticmethod
+        # def make_npc_turn_queue(people: "model.People"):
+        #     return HeroTurnQueue(people, people.turn_period)
 
 
 if __name__ == "__main__":
-    class TestCallableObject(object):
-        def __init__(self, name: str):
+    class TestObserver(object):
+        def __init__(self, name: str="hoge"):
             self.name = name
 
-        def start_turn(self):
+        def update_turn_start(self):
             print("---next turn---")
             print(self.name)
+            print('')
 
     tm = TurnManager()
 
-    hero = TestCallableObject("I'm Hero.")
-    villager = TestCallableObject("I'm Villager.")
-    enemy = TestCallableObject("I'm Enemy.")
-    boss = TestCallableObject("I'm Boss.")
+    hero_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Hero."), 2)
+    villager_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Villager."), 23)
+    enemy_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Enemy."), 12)
+    boss_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Boss."), 33)
 
-    tm.register(2, hero)
-    tm.register(23, villager)
-    tm.register(12, enemy)
-    tm.register(33, boss)
+    tm.register(hero_entry)
+    tm.register(villager_entry)
+    tm.register(enemy_entry)
+    tm.register(boss_entry)
 
-    print(tm)
+    tm._print_queue()
 
     tm.update()
-    print(tm)
+    tm._print_queue()
     tm.update()
-    print(tm)
+    tm._print_queue()
     tm.update()
-    print(tm)
+    tm._print_queue()
     tm.update()
-    print(tm)
+    tm._print_queue()
