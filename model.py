@@ -4,6 +4,7 @@ __author__ = 'tenpa'
 
 from position import PositionAndDirection
 import observer
+import turn
 
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
@@ -123,7 +124,15 @@ class Wall(ObstacleObject):
 class People(ObstacleObject):
     pose_icon = 'P'
     comment = "It's a people."
-    turn_period = 5 # FIXME パラメータの概念をそろそろ導入しないと
+    turn_period = 5  # FIXME パラメータの概念をそろそろ導入しないと
+
+    def __init__(self,
+                 observable: "observer.Observable",
+                 map_model: "MapModel",
+                 pos_and_dir: "PositionAndDirection",
+                 turn_manager: "turn.TurnManager"):
+        super().__init__(observable, map_model, pos_and_dir)
+        self.turn_manager = turn_manager
 
     def run(self):
         front_position = self.pos_and_dir.get_front_position()
@@ -134,6 +143,8 @@ class People(ObstacleObject):
             self.throw_message("move to {0}".format(dir_word))
         else:
             self.throw_message("Ouch!! Obstacle is at {0}.".format(dir_word))
+
+        self.__end_turn()
 
     def move_north(self):
         self.pos_and_dir.turn_north()
@@ -163,6 +174,13 @@ class People(ObstacleObject):
     def get_icon(self):
         return self.icon
 
+    def __end_turn(self):
+        queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
+            self.observer,
+            self.turn_period
+        )
+        self.turn_manager.register(queue_entry)
+
 
 class Villager(People):
     pose_icon = "V"
@@ -171,8 +189,9 @@ class Villager(People):
                  observable: "observer.Observable",
                  map_model: "MapModel",
                  pos_and_dir: PositionAndDirection,
+                 turn_manager: "turn.TurnManager",
                  comment: str="__init__"):
-        super().__init__(observable, map_model, pos_and_dir)
+        super().__init__(observable, map_model, pos_and_dir, turn_manager)
         self.comment = comment
 
     def get_comment(self):
@@ -195,5 +214,8 @@ class Hero(People):
         self.map_model.interact(self)
 
     def __end_turn(self):
-        self.observer.update_turn_end()
-
+        queue_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(
+            self.observer,
+            self.turn_period
+        )
+        self.turn_manager.register(queue_entry)

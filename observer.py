@@ -38,9 +38,9 @@ class Observable(object):
 # View-Model-Observerで循環参照してるので、初回だけはviewerにはNoneが入る。後でセットされる。
 # 追記：controllerも後でセットされる。
 class Observer(object):
-    def __init__(self, viewer: "view.Viewer", controller: "controller.Controller"):
+    def __init__(self, viewer: "view.Viewer", my_keyboard: "controller.Controller"):
         self.view = viewer
-        self.controller = controller
+        self.controller = my_keyboard
 
     def update(self):
         self.view.draw()
@@ -49,6 +49,4 @@ class Observer(object):
         self.view.draw()
         self.controller.start_input()
 
-    def update_turn_end(self):
-        print("---turn end---")
-
+# turn_endはロジックに関わるので、Observerに書くべきではないと判断。

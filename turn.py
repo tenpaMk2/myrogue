@@ -34,34 +34,26 @@ class TurnManager(object):
             print("remain time = {0}: {1}".format(entry.next_turn_time, entry.observer.__dict__))
 
 class TurnQueueEntry(object):
-    def __init__(self):
-        self.observer = None
-        self.next_turn_time = 0
+    def __init__(self, observer: "observer.Observer", turn_period: int):
+        self.observer = observer
+        self.next_turn_time = turn_period
 
     def decrease_turn_time(self, decreasing_time: int):
         self.next_turn_time -= decreasing_time
 
     def start_turn(self):
-        pass
-
-
-class HeroTurnQueueEntry(TurnQueueEntry):
-    def __init__(self, observer: "observer.Observer", turn_period: int):
-        self.observer = observer
-        self.next_turn_time = turn_period
-
-    def start_turn(self):
         self.observer.update_turn_start()
 
 
-class TurnQueueFactory(object):
+class TurnQueueEntryFactory(object):
     @staticmethod
     def make_hero_turn_queue(observer: "observer.Observer", turn_period: int):
-        return HeroTurnQueueEntry(observer, turn_period)
+        return TurnQueueEntry(observer, turn_period)
 
-        # @staticmethod
-        # def make_npc_turn_queue(people: "model.People"):
-        #     return HeroTurnQueue(people, people.turn_period)
+    # FIXME 今の所は同じ実装だが、後々別れるかもしれない。ま、Observerの方で区別つけるのが適切だと思うけどね。
+    @staticmethod
+    def make_npc_turn_queue(observer: "observer.Observer", turn_period: int):
+        return TurnQueueEntry(observer, turn_period)
 
 
 if __name__ == "__main__":
@@ -76,13 +68,15 @@ if __name__ == "__main__":
 
     tm = TurnManager()
 
-    hero_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Hero."), 2)
-    villager_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Villager."), 23)
-    enemy_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Enemy."), 12)
-    boss_entry = TurnQueueFactory.make_hero_turn_queue(TestObserver("I'm Boss."), 33)
+    hero_entry = TurnQueueEntryFactory.make_hero_turn_queue(TestObserver("I'm Hero."), 2)
+    villager_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("I'm Villager."), 23)
+    sonchou_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("私が村長です。"), 23)
+    enemy_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("I'm Enemy."), 12)
+    boss_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("I'm Boss."), 33)
 
     tm.register(hero_entry)
     tm.register(villager_entry)
+    tm.register(sonchou_entry)
     tm.register(enemy_entry)
     tm.register(boss_entry)
 
