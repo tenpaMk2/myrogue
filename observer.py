@@ -13,9 +13,16 @@ class Observable(object):
         self.viewer = None
         self.controller = None
 
-    def create_observer(self):
+    def create_observer_and_return(self):
         # noinspection PyTypeChecker
         new_observer = Observer(self.viewer, self.controller)
+        self.observer_list.append(new_observer)
+
+        return new_observer
+
+    def create_dummy_observer_and_return(self):
+        # noinspection PyTypeChecker
+        new_observer = DummyObserver(self.viewer, self.controller)
         self.observer_list.append(new_observer)
 
         return new_observer
@@ -49,4 +56,13 @@ class Observer(object):
         self.view.draw()
         self.controller.start_input()
 
+
 # turn_endはロジックに関わるので、Observerに書くべきではないと判断。
+
+# FIXME 継承でメソッドを潰すのは良くないと思うんだよなあ。
+class DummyObserver(Observer):
+    def update(self):
+        pass
+
+    def update_turn_start(self):
+        pass

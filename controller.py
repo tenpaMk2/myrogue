@@ -10,7 +10,7 @@ import observer
 class Controller(object):
     def __init__(self, observable: "observer.Observable", hero: "model.Hero", viewer: "view.Viewer"):
         self.observable = observable
-        self.observer = observable.create_observer()
+        self.observer = observable.create_observer_and_return()
 
         self.hero = hero
         self.viewer = viewer

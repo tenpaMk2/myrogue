@@ -11,7 +11,7 @@ class Viewer(object):
         self.map_model = map_model
         self.map_list = []
         self.message_list = []
-        self.observer = observable.create_observer()
+        self.observer = observable.create_observer_and_return()
 
     def draw(self):
         self.draw_map()

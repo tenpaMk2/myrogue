@@ -36,7 +36,9 @@ map_model.resister_map_object(villager2)
 my_keyboard = controller.Controller(obs, hero, viewer)
 obs.change_controller(my_keyboard)
 
-my_keyboard.start_input()
+
+while True:
+    turn_manager.update()
 
 
 

@@ -20,7 +20,7 @@ class MapModel(object):
     def __init__(self, observable: "observer.Observable", size: (int, int)):
         (self.height, self.width) = size
         self.observable = observable
-        self.observer = observable.create_observer()
+        self.observer = observable.create_observer_and_return()
 
         self.message = ''
         self.floor_list = []
@@ -86,7 +86,7 @@ class MapObject(object):
                  observable: "observer.Observable",
                  map_model: "MapModel",
                  pos_and_dir: "PositionAndDirection"):
-        self.observer = observable.create_observer()
+        self.observer = observable.create_observer_and_return()
         self.map_model = map_model
         self.pos_and_dir = pos_and_dir
 
@@ -133,6 +133,7 @@ class People(ObstacleObject):
                  turn_manager: "turn.TurnManager"):
         super().__init__(observable, map_model, pos_and_dir)
         self.turn_manager = turn_manager
+        self.__end_turn()
 
     def run(self):
         front_position = self.pos_and_dir.get_front_position()
