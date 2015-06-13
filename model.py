@@ -11,6 +11,7 @@ import observer
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
 # TODO Okmrさんに言われた通り、HeroのMove系メソッドはupdateを伴うので親クラスと違う名前にしよう。
 # TODO Observerにupdateだけではなくて、turn_startを追加して、ターンの経過をObserverに知らせる形にしてはどうか。
+# TODO save関連はCSVモジュールを使うといいかもね。当分先の話。
 
 class MapModel(object):
     # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
