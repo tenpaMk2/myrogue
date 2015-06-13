@@ -39,6 +39,7 @@ class TurnManager(object):
 
         return print_str
 
+
 if __name__ == "__main__":
     class TestCallableObject(object):
         def __init__(self, name: str):
@@ -62,7 +63,6 @@ if __name__ == "__main__":
 
     print(tm)
 
-
     tm.update()
     print(tm)
     tm.update()
@@ -71,4 +71,3 @@ if __name__ == "__main__":
     print(tm)
     tm.update()
     print(tm)
-
