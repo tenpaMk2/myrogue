@@ -159,6 +159,9 @@ class People(ObstacleObject, observer.Subject):
         self.pos_and_dir.turn_west()
         self.run()
 
+    def do_nothing(self):
+        self.__end_turn()
+
     def throw_message(self, message: str):
         self.map_model.set_message(self, message)
 

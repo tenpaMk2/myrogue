@@ -83,3 +83,4 @@ class NPCObserver(Observer):
 
     def update_turn_start(self):
         print("--start NPC turn--")
+        # FIXME ここにdo_nothing()を入れたいんだが、どうすればいいんだろう…。
