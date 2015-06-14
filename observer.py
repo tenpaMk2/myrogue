@@ -7,6 +7,23 @@ import controller
 
 # TODO 依存してるモジュールが無くてもテストできるように、そのメソッドだけもつダミークラスをテスト用に作ったほうがいいかも。
 
+
+class Subject(object):
+    def __init__(self):
+        self._observers = []
+
+    def add_observer(self, observer):
+        if not observer in self._observers:
+            self._observers.append(observer)
+
+    def remove_observer(self, observer):
+        self._observers.remove(observer)
+
+    def notify(self):
+        for observer in self._observers:
+            observer.update(self)
+
+
 class Observable(object):
     def __init__(self):
         self.observer_list = []
@@ -60,9 +77,9 @@ class Observer(object):
 # turn_endはロジックに関わるので、Observerに書くべきではないと判断。
 
 # FIXME 継承でメソッドを潰すのは良くないと思うんだよなあ。
-class DummyObserver(Observer):
+class NPCObserver(Observer):
     def update(self):
         pass
 
     def update_turn_start(self):
-        pass
+        print("--start NPC turn--")

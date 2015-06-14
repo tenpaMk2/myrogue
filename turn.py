@@ -22,6 +22,8 @@ class TurnManager(object):
         spent_time = current_entry.next_turn_time
 
         self.__decrease_turn_time(spent_time)
+
+        print("start_turn:", current_entry)
         current_entry.start_turn()
 
     def __decrease_turn_time(self, decreasing_time: int):
@@ -31,7 +33,7 @@ class TurnManager(object):
     def _print_queue(self):
         print("<-----queue----->")
         for entry in self.queue:
-            print("remain time = {0}: {1}".format(entry.next_turn_time, entry.observer.__dict__))
+            print("remain time = {0}: {1}: {2}".format(entry.next_turn_time, entry, entry.observer.__dict__))
 
 class TurnQueueEntry(object):
     def __init__(self, observer: "observer.Observer", turn_period: int):

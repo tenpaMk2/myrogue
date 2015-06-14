@@ -33,7 +33,7 @@ class MapModel(object):
         for y in range(self.height):
             for x in range(self.width):
                 pos_and_dir = PositionAndDirection([y, x])
-                self.floor_list.append(Floor(self.observable, self, pos_and_dir))
+                self.floor_list.append(Floor(self, pos_and_dir))
 
     def clear_message(self):
         self.message = ""
@@ -68,7 +68,7 @@ class MapModel(object):
             for x in range(self.width):
                 if y == 0 or y == self.height - 1 or x == 0 or x == self.width - 1:
                     pos_and_dir = PositionAndDirection([y, x])
-                    self.obstacle_list.append(Wall(self.observable, self, pos_and_dir))
+                    self.obstacle_list.append(Wall(self, pos_and_dir))
 
     def resister_map_object(self, map_object: "MapObject"):
         self.obstacle_list.append(map_object)
@@ -82,11 +82,7 @@ class MapObject(object):
     pose_icon = ' '
     comment = "ERROR!! I'm Map_Object."
 
-    def __init__(self,
-                 observable: "observer.Observable",
-                 map_model: "MapModel",
-                 pos_and_dir: "PositionAndDirection"):
-        self.observer = observable.create_observer_and_return()
+    def __init__(self, map_model: "MapModel", pos_and_dir: "PositionAndDirection"):
         self.map_model = map_model
         self.pos_and_dir = pos_and_dir
 
@@ -121,19 +117,19 @@ class Wall(ObstacleObject):
     comment = "It's a wall."
 
 
-class People(ObstacleObject):
+class People(ObstacleObject, observer.Subject):
     pose_icon = 'P'
     comment = "It's a people."
     turn_period = 5  # FIXME パラメータの概念をそろそろ導入しないと
 
     def __init__(self,
-                 observable: "observer.Observable",
                  map_model: "MapModel",
                  pos_and_dir: "PositionAndDirection",
                  turn_manager: "turn.TurnManager"):
-        super().__init__(observable, map_model, pos_and_dir)
+        super().__init__(map_model, pos_and_dir)
         self.turn_manager = turn_manager
-        self.__end_turn()
+
+        observer.Subject.__init__(self)
 
     def run(self):
         front_position = self.pos_and_dir.get_front_position()
@@ -177,7 +173,7 @@ class People(ObstacleObject):
 
     def __end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
-            self.observer,
+            self._observers[0],
             self.turn_period
         )
         self.turn_manager.register(queue_entry)
@@ -187,21 +183,21 @@ class Villager(People):
     pose_icon = "V"
 
     def __init__(self,
-                 observable: "observer.Observable",
-                 map_model: "MapModel",
-                 pos_and_dir: PositionAndDirection,
+                 map_model: MapModel,
+                 pos_and_dir: "PositionAndDirection",
                  turn_manager: "turn.TurnManager",
-                 comment: str="__init__"):
-        super().__init__(observable, map_model, pos_and_dir, turn_manager)
+                 comment: str="hoge"):
+        super().__init__(map_model, pos_and_dir, turn_manager)
         self.comment = comment
 
     def get_comment(self):
         return self.comment
 
 
-class Hero(People):
+class Hero(People, observer.Subject):
     pose_icon = '@'
     direction_icon_list = ['^', '>', 'v', '<']
+    turn_period = 2  # FIXME パラメータの概念をそろそろ導入しないと
 
     def update_icon(self):
         self.icon = self.direction_icon_list[self.pos_and_dir.direction]
@@ -209,14 +205,13 @@ class Hero(People):
     def run(self):
         super().run()
         self.update_icon()
-        self.observer.update()
 
     def interact_to_front(self):
         self.map_model.interact(self)
 
     def __end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(
-            self.observer,
+            self._observers[0],
             self.turn_period
         )
         self.turn_manager.register(queue_entry)
