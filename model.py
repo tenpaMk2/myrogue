@@ -8,12 +8,11 @@ import turn
 
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
-# TODO ターンの概念を導入する必要が有る。Observerのupdateもその辺が肝になるはず。
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
 # TODO Okmrさんに言われた通り、HeroのMove系メソッドはupdateを伴うので親クラスと違う名前にしよう。
-# TODO Observerにupdateだけではなくて、turn_startを追加して、ターンの経過をObserverに知らせる形にしてはどうか。
 # TODO save関連はCSVモジュールを使うといいかもね。当分先の話。
 
+# TODO MapModelもSubjectを多重継承するようにしよう
 class MapModel(object):
     # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
 

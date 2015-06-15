@@ -6,7 +6,7 @@ import model
 import view
 import observer
 
-
+# TODO ControllerもSubjectを多重継承するようにしよう。とはいえ現状使ってないから削除でも良いけど。
 class Controller(object):
     def __init__(self, observable: "observer.Observable", hero: "model.Hero", viewer: "view.Viewer"):
         self.observable = observable
