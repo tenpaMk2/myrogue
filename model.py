@@ -117,6 +117,7 @@ class Wall(ObstacleObject):
     comment = "It's a wall."
 
 
+# FIXME HeroとVillagerで共通する部分を抜き出しつつ、それぞれ個別に処理する所はきっちり分けれるようにしたい。
 class People(ObstacleObject, observer.Subject):
     pose_icon = 'P'
     comment = "It's a people."
@@ -141,8 +142,6 @@ class People(ObstacleObject, observer.Subject):
         else:
             self.throw_message("Ouch!! Obstacle is at {0}.".format(dir_word))
 
-        self.__end_turn()
-
     def move_north(self):
         self.pos_and_dir.turn_north()
         self.run()
@@ -159,9 +158,6 @@ class People(ObstacleObject, observer.Subject):
         self.pos_and_dir.turn_west()
         self.run()
 
-    def do_nothing(self):
-        self.__end_turn()
-
     def throw_message(self, message: str):
         self.map_model.set_message(self, message)
 
@@ -174,27 +170,29 @@ class People(ObstacleObject, observer.Subject):
     def get_icon(self):
         return self.icon
 
-    def __end_turn(self):
-        queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
-            self._observers[0],
-            self.turn_period
-        )
-        self.turn_manager.register(queue_entry)
-
 
 class Villager(People):
     pose_icon = "V"
 
-    def __init__(self,
-                 map_model: MapModel,
-                 pos_and_dir: "PositionAndDirection",
-                 turn_manager: "turn.TurnManager",
+    def __init__(self, map_model: MapModel, pos_and_dir: "PositionAndDirection", turn_manager: "turn.TurnManager",
                  comment: str="hoge"):
         super().__init__(map_model, pos_and_dir, turn_manager)
         self.comment = comment
+        self.ai = AI(self, map_model)
 
     def get_comment(self):
         return self.comment
+
+    def do_nothing(self):
+        print("do_nothing:{0}".format(self))
+        self.__end_turn()
+
+    def __end_turn(self):
+        queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
+            self.ai,
+            self.turn_period
+        )
+        self.turn_manager.register(queue_entry)
 
 
 class Hero(People, observer.Subject):
@@ -208,9 +206,11 @@ class Hero(People, observer.Subject):
     def run(self):
         super().run()
         self.update_icon()
+        self.__end_turn()
 
     def interact_to_front(self):
         self.map_model.interact(self)
+        self.__end_turn()
 
     def __end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(
@@ -218,3 +218,18 @@ class Hero(People, observer.Subject):
             self.turn_period
         )
         self.turn_manager.register(queue_entry)
+
+# TODO 例えばactで右に動くようにしたとき、現状はターンエンド処理が入らない。根本的に見直さないと。
+class AI(object):
+    def __init__(self, villager: "Villager", map_model: "MapModel"):
+        self.villager = villager
+        self.map_model = map_model
+
+    def act(self):
+        # ここにAIのロジック
+        # とりあえず今は何もしない。
+        self.villager.do_nothing()
+
+
+
+

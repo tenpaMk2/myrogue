@@ -12,7 +12,7 @@ class TurnManager(object):
         self.queue = []
         self.total_turn_count = 0
 
-    def register(self, turn_queue_entry: "TurnQueueEntry"):
+    def register(self, turn_queue_entry: "INTERFACE_TurnQueueEntry"):
         # まずは追加。その後に次回ターンまでの時間でソートする。
         self.queue.append(turn_queue_entry)
         self.queue.sort(key=lambda x: x.next_turn_time)
@@ -33,9 +33,21 @@ class TurnManager(object):
     def _print_queue(self):
         print("<-----queue----->")
         for entry in self.queue:
-            print("remain time = {0}: {1}: {2}".format(entry.next_turn_time, entry, entry.observer.__dict__))
+            print("remain time = {0}: {1}".format(entry.next_turn_time, entry))
 
-class TurnQueueEntry(object):
+
+class INTERFACE_TurnQueueEntry(object):
+    def __init__(self, ai_or_obs, turn_period):
+        pass
+
+    def decrease_turn_time(self, decreasing_time):
+        pass
+
+    def start_turn(self):
+        pass
+
+
+class HeroTurnQueueEntry(INTERFACE_TurnQueueEntry):
     def __init__(self, observer: "observer.Observer", turn_period: int):
         self.observer = observer
         self.next_turn_time = turn_period
@@ -47,15 +59,27 @@ class TurnQueueEntry(object):
         self.observer.update_turn_start()
 
 
+class NPCTurnQueueEntry(INTERFACE_TurnQueueEntry):
+    def __init__(self, ai: "model.AI", turn_period: int):
+        self.ai = ai
+        self.next_turn_time = turn_period
+
+    def decrease_turn_time(self, decreasing_time: int):
+        self.next_turn_time -= decreasing_time
+
+    def start_turn(self):
+        self.ai.act()
+
+
 class TurnQueueEntryFactory(object):
     @staticmethod
     def make_hero_turn_queue(observer: "observer.Observer", turn_period: int):
-        return TurnQueueEntry(observer, turn_period)
+        return HeroTurnQueueEntry(observer, turn_period)
 
     # FIXME 今の所は同じ実装だが、後々別れるかもしれない。ま、Observerの方で区別つけるのが適切だと思うけどね。
     @staticmethod
-    def make_npc_turn_queue(observer: "observer.Observer", turn_period: int):
-        return TurnQueueEntry(observer, turn_period)
+    def make_npc_turn_queue(ai: "model.AI", turn_period: int):
+        return NPCTurnQueueEntry(ai, turn_period)
 
 
 if __name__ == "__main__":
@@ -64,17 +88,26 @@ if __name__ == "__main__":
             self.name = name
 
         def update_turn_start(self):
-            print("---next turn---")
+            print("---current Hero turn---")
+            print(self.name)
+            print('')
+
+    class TestAI(object):
+        def __init__(self, name: str="AI"):
+            self.name = name
+
+        def act(self):
+            print("---current NPC turn---")
             print(self.name)
             print('')
 
     tm = TurnManager()
 
     hero_entry = TurnQueueEntryFactory.make_hero_turn_queue(TestObserver("I'm Hero."), 2)
-    villager_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("I'm Villager."), 23)
-    sonchou_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("私が村長です。"), 23)
-    enemy_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("I'm Enemy."), 12)
-    boss_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestObserver("I'm Boss."), 33)
+    villager_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("I'm Villager."), 23)
+    sonchou_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("私が村長です。"), 23)
+    enemy_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("I'm Enemy."), 12)
+    boss_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("I'm Boss."), 33)
 
     tm.register(hero_entry)
     tm.register(villager_entry)

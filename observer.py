@@ -37,9 +37,9 @@ class Observable(object):
 
         return new_observer
 
-    def create_dummy_observer_and_return(self):
+    def create_npc_observer_and_return(self):
         # noinspection PyTypeChecker
-        new_observer = DummyObserver(self.viewer, self.controller)
+        new_observer = NPCObserver(self.viewer, self.controller)
         self.observer_list.append(new_observer)
 
         return new_observer
@@ -84,3 +84,5 @@ class NPCObserver(Observer):
     def update_turn_start(self):
         print("--start NPC turn--")
         # FIXME ここにdo_nothing()を入れたいんだが、どうすればいいんだろう…。
+        # FIXME やっぱりturnにobserverを使うのはまずい気がする…。使うにしても、Observerがなくても動作するようにしよう。
+
