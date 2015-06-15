@@ -86,8 +86,6 @@ class MapObject(object):
 
         self.icon = self.pose_icon
 
-        # TODO 既にこの座標にオブジェクトが存在していないかチェック。
-
     def get_position(self):
         return self.pos_and_dir.get_position()
 

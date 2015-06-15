@@ -3,7 +3,7 @@
 __author__ = 'tenpa'
 
 # TODO 依存してるモジュールが無くてもテストできるように、そのメソッドだけもつダミークラスをテスト用に作ったほうがいいかも。
-
+# TODO そもそもObserverにいろいろ役割を持たせ過ぎなんじゃないだろうか…。
 
 class Subject(object):
     def __init__(self):
@@ -44,11 +44,10 @@ class Observer(object):
 # turn_endはロジックに関わるので、Observerに書くべきではないと判断。
 
 # FIXME 継承でメソッドを潰すのは良くないと思うんだよなあ。
+# FIXME そのためにはABC使わないとだめか?
 class NPCObserver(Observer):
     def update(self):
         pass
 
     def update_turn_start(self):
         print("--start NPC turn--")
-        # FIXME ここにdo_nothing()を入れたいんだが、どうすればいいんだろう…。
-        # FIXME やっぱりturnにobserverを使うのはまずい気がする…。使うにしても、Observerがなくても動作するようにしよう。

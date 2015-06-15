@@ -25,6 +25,7 @@ hero = model.Hero(map_model, hero_pos, turn_manager)
 
 villager1 = model.Villager(map_model, PositionAndDirection([2, 2]), turn_manager, "Yo! Hage!")
 villager2 = model.Villager(map_model, PositionAndDirection([1, 4]), turn_manager, "Hello, Hage!")
+
 # Mapへの登録
 map_model.resister_map_object(hero)
 map_model.resister_map_object(villager1)

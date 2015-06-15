@@ -83,6 +83,7 @@ class TurnQueueEntryFactory(object):
 
 
 if __name__ == "__main__":
+    # FIXME ここも本来はObserverを継承すべき。やはりABCを使うのがメソッドの定義し忘れがなくて安全か。
     class TestObserver(object):
         def __init__(self, name: str="hoge"):
             self.name = name
