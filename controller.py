@@ -6,12 +6,10 @@ import model
 import view
 import observer
 
-# TODO ControllerもSubjectを多重継承するようにしよう。とはいえ現状使ってないから削除でも良いけど。
-class Controller(object):
-    def __init__(self, observable: "observer.Observable", hero: "model.Hero", viewer: "view.Viewer"):
-        self.observable = observable
-        self.observer = observable.create_observer_and_return()
-
+# TODO ControllerにあてるObserverは普通のObserverで良いんだろうか。というかNPCObserverなんてもんがあっちゃまずいのか?
+class Controller(observer.Subject):
+    def __init__(self, hero: "model.Hero", viewer: "view.Viewer"):
+        observer.Subject.__init__(self)
         self.hero = hero
         self.viewer = viewer
 

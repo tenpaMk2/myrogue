@@ -11,21 +11,17 @@ import turn
 
 import warnings
 
-# Observer
-obs = observer.Observable()
 # Model:Map
-map_model = model.MapModel(obs, [5, 20])
+map_model = model.MapModel([5, 20])
 # Model:TurnManager
 turn_manager = turn.TurnManager()
 
 # Viewer
-viewer = view.Viewer(obs, map_model)
-# ObserverにViewerを設定
-obs.change_viewer(viewer)
+viewer = view.Viewer(map_model)
 
 # HeroとPeopleの作製
-heropos = PositionAndDirection([1, 1], 0)
-hero = model.Hero(map_model, heropos, turn_manager)
+hero_pos = PositionAndDirection([1, 1], 0)
+hero = model.Hero(map_model, hero_pos, turn_manager)
 
 villager1 = model.Villager(map_model, PositionAndDirection([2, 2]), turn_manager, "Yo! Hage!")
 villager2 = model.Villager(map_model, PositionAndDirection([1, 4]), turn_manager, "Hello, Hage!")
@@ -35,14 +31,17 @@ map_model.resister_map_object(villager1)
 map_model.resister_map_object(villager2)
 
 # Controller
-my_keyboard = controller.Controller(obs, hero, viewer)
-# ObserverにControllerを設定
-obs.change_controller(my_keyboard)
+my_keyboard = controller.Controller(hero, viewer)
 
 # Observerを追加
+map_model.add_observer(observer.Observer(viewer, my_keyboard))
+viewer.add_observer(observer.Observer(viewer, my_keyboard))
+
 hero.add_observer(observer.Observer(viewer, my_keyboard))
-villager1.add_observer((observer.NPCObserver(viewer, my_keyboard)))
-villager2.add_observer((observer.NPCObserver(viewer, my_keyboard)))
+villager1.add_observer(observer.NPCObserver(viewer, my_keyboard))
+villager2.add_observer(observer.NPCObserver(viewer, my_keyboard))
+
+my_keyboard.add_observer(observer.Observer(viewer, my_keyboard))
 
 # TurnManagerに追加
 hero_turn_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(hero._observers[0], 0)

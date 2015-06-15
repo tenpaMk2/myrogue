@@ -13,13 +13,12 @@ import turn
 # TODO save関連はCSVモジュールを使うといいかもね。当分先の話。
 
 # TODO MapModelもSubjectを多重継承するようにしよう
-class MapModel(object):
+class MapModel(observer.Subject):
     # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
 
-    def __init__(self, observable: "observer.Observable", size: (int, int)):
+    def __init__(self, size: (int, int)):
+        observer.Subject.__init__(self)
         (self.height, self.width) = size
-        self.observable = observable
-        self.observer = observable.create_observer_and_return()
 
         self.message = ''
         self.floor_list = []
@@ -46,7 +45,7 @@ class MapModel(object):
         interact_object = self.get_map_object_by_position(object_front_position)
 
         self.set_message(interact_object, interact_object.comment)
-        self.observer.update()
+        self.notify()
 
     def get_map_object_by_position(self, position: "PositionAndDirection"):
         for obstacle in self.obstacle_list:
@@ -73,7 +72,7 @@ class MapModel(object):
         self.obstacle_list.append(map_object)
 
         self.set_message(map_object, "resister {0}".format(map_object.get_position()))
-        self.observer.update()
+        self.notify()
 
 
 # 全てのマップオブジェクトの基本となるクラス

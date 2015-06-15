@@ -2,9 +2,6 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
-import view
-import controller
-
 # TODO 依存してるモジュールが無くてもテストできるように、そのメソッドだけもつダミークラスをテスト用に作ったほうがいいかも。
 
 
@@ -21,42 +18,12 @@ class Subject(object):
 
     def notify(self):
         for observer in self._observers:
-            observer.update(self)
+            observer.update()
 
-
-class Observable(object):
-    def __init__(self):
-        self.observer_list = []
-        self.viewer = None
-        self.controller = None
-
-    def create_observer_and_return(self):
-        # noinspection PyTypeChecker
-        new_observer = Observer(self.viewer, self.controller)
-        self.observer_list.append(new_observer)
-
-        return new_observer
-
-    def create_npc_observer_and_return(self):
-        # noinspection PyTypeChecker
-        new_observer = NPCObserver(self.viewer, self.controller)
-        self.observer_list.append(new_observer)
-
-        return new_observer
-
-    def change_viewer(self, viewer: "view.Viewer"):
-        for observer in self.observer_list:
-            observer.view = viewer
-        self.viewer = viewer
-
-        print("Successfully changed observer's viewer!")
-
-    def change_controller(self, controller: "controller.Controller"):
-        for observer in self.observer_list:
-            observer.controller = controller
-        self.controller = controller
-
-        print("Successfully changed observer's controller!")
+# FIXME 循環importをさけるためにこんな場所に。やはり、Observerが単体で動作するのはまずい気がする。
+# ViewObserverとControllerObserverに分けたらどうか。
+import view
+import controller
 
 
 # View-Model-Observerで循環参照してるので、初回だけはviewerにはNoneが入る。後でセットされる。
@@ -85,4 +52,3 @@ class NPCObserver(Observer):
         print("--start NPC turn--")
         # FIXME ここにdo_nothing()を入れたいんだが、どうすればいいんだろう…。
         # FIXME やっぱりturnにobserverを使うのはまずい気がする…。使うにしても、Observerがなくても動作するようにしよう。
-

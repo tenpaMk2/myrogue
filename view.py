@@ -6,12 +6,12 @@ import model
 import observer
 
 
-class Viewer(object):
-    def __init__(self, observable: "observer.Observable", map_model: "model.MapModel"):
+class Viewer(observer.Subject):
+    def __init__(self, map_model: "model.MapModel"):
+        observer.Subject.__init__(self)
         self.map_model = map_model
         self.map_list = []
         self.message_list = []
-        self.observer = observable.create_observer_and_return()
 
     def draw(self):
         self.draw_map()
