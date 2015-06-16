@@ -93,14 +93,21 @@ class MapObject(object):
 # TODO isObstacleの名称はまずいか? 変数とメソッドの区別がつかない。
 # 通行不可のマップオブジェクト
 class ObstacleObject(MapObject):
-    isObstacle = True
+    __flag_is_obstacle = True
     comment = "ERROR!! I'm Obstacle_Object."
+
+    def is_obstacle(self):
+        return self.__flag_is_obstacle
+
 
 
 # 通行可能なマップオブジェクト
 class NonObstacleObject(MapObject):
-    isObstacle = False
+    __flag_is_obstacle = False
     comment = "ERROR!! I'm Non_Obstacle_Object."
+
+    def is_obstacle(self):
+        return self.__flag_is_obstacle
 
 
 class Floor(NonObstacleObject):
