@@ -8,6 +8,8 @@ import observer
 
 # TODO ControllerにあてるObserverは普通のObserverで良いんだろうか。というかNPCObserverなんてもんがあっちゃまずいのか?
 # FIXME inputを始めるときにマップの描画もしちゃえばええんや！これでObserverもすっきりするんちゃう?
+# Observerを使うのは正しい。Modelから直接ControllerやViewが見えてはいけない。
+# しかし、どうやってHeroとVillagerのObserverを区別するかが問題だ。
 class Controller(observer.Subject):
     def __init__(self, hero: "model.Hero", viewer: "view.Viewer"):
         observer.Subject.__init__(self)

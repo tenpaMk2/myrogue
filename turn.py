@@ -76,7 +76,6 @@ class TurnQueueEntryFactory(object):
     def make_hero_turn_queue(observer: "observer.Observer", turn_period: int):
         return HeroTurnQueueEntry(observer, turn_period)
 
-    # FIXME 今の所は同じ実装だが、後々別れるかもしれない。ま、Observerの方で区別つけるのが適切だと思うけどね。
     @staticmethod
     def make_npc_turn_queue(ai: "model.AI", turn_period: int):
         return NPCTurnQueueEntry(ai, turn_period)
