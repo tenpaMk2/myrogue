@@ -5,14 +5,13 @@ __author__ = 'tenpa'
 from position import PositionAndDirection
 import observer
 import turn
+from abc import ABCMeta, abstractmethod
 
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
-# TODO Okmrさんに言われた通り、HeroのMove系メソッドはupdateを伴うので親クラスと違う名前にしよう。
 # TODO save関連はCSVモジュールを使うといいかもね。当分先の話。
 
-# TODO MapModelもSubjectを多重継承するようにしよう
 class MapModel(observer.Subject):
     # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
 
@@ -40,7 +39,7 @@ class MapModel(observer.Subject):
         obstacles_position = [obje.get_position() for obje in self.obstacle_objects]
         return position not in obstacles_position
 
-    def interact(self, people: "People"):
+    def interact(self, people: "Character"):
         object_front_position = people.get_front_position()
         interact_object = self.get_map_object_by_position(object_front_position)
 
@@ -116,17 +115,17 @@ class Wall(ObstacleObject):
     comment = "It's a wall."
 
 
-# FIXME HeroとVillagerで共通する部分を抜き出しつつ、それぞれ個別に処理する所はきっちり分けれるようにしたい。
-class People(ObstacleObject, observer.Subject):
+#FIXME 抽象基底クラスなので、インスタンス化はできない。インスタンス化を考慮したクラス変数などは除外すべき?
+class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
     pose_icon = 'P'
-    comment = "It's a people."
-    turn_period = 5  # FIXME パラメータの概念をそろそろ導入しないと
+    comment = "It's a Character"
+    direction_icons = ['P', 'P', 'P', 'P']
 
     def __init__(self,
                  map_model: "MapModel",
                  pos_and_dir: "PositionAndDirection",
                  turn_manager: "turn.TurnManager"):
-        super().__init__(map_model, pos_and_dir)
+        super(Character, self).__init__(map_model, pos_and_dir)
         self.turn_manager = turn_manager
 
         observer.Subject.__init__(self)
@@ -141,24 +140,33 @@ class People(ObstacleObject, observer.Subject):
         else:
             self.throw_message("Ouch!! Obstacle is at {0}.".format(dir_word))
 
+        self._end_turn()
+
     def move_north(self):
         self.pos_and_dir.turn_north()
+        self._update_icon()
         self.run()
 
     def move_east(self):
         self.pos_and_dir.turn_east()
+        self._update_icon()
         self.run()
 
     def move_south(self):
         self.pos_and_dir.turn_south()
+        self._update_icon()
         self.run()
 
     def move_west(self):
         self.pos_and_dir.turn_west()
+        self._update_icon()
         self.run()
 
     def throw_message(self, message: str):
         self.map_model.set_message(self, message)
+
+    def _update_icon(self):
+        self.icon = self.direction_icons[self.pos_and_dir.direction]
 
     def get_front_position(self):
         return self.pos_and_dir.get_front_position()
@@ -169,9 +177,15 @@ class People(ObstacleObject, observer.Subject):
     def get_icon(self):
         return self.icon
 
+    @abstractmethod
+    def _end_turn(self):
+        raise Exception("Not implemented!!")
 
-class Villager(People):
+
+class Villager(Character):
     pose_icon = "V"
+    direction_icons = ['V', 'V', 'V', 'V']
+    turn_period = 5  # FIXME パラメータの概念をそろそろ導入しないと
 
     def __init__(self, map_model: MapModel, pos_and_dir: "PositionAndDirection", turn_manager: "turn.TurnManager",
                  comment: str="hoge"):
@@ -184,9 +198,9 @@ class Villager(People):
 
     def do_nothing(self):
         print("do_nothing:{0}".format(self))
-        self.__end_turn()
+        self._end_turn()
 
-    def __end_turn(self):
+    def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
             self.ai,
             self.turn_period
@@ -194,24 +208,17 @@ class Villager(People):
         self.turn_manager.register(queue_entry)
 
 
-class Hero(People, observer.Subject):
+class Hero(Character, observer.Subject):
     pose_icon = '@'
     direction_icons = ['^', '>', 'v', '<']
     turn_period = 2  # FIXME パラメータの概念をそろそろ導入しないと
 
-    def update_icon(self):
-        self.icon = self.direction_icons[self.pos_and_dir.direction]
-
-    def run(self):
-        super().run()
-        self.update_icon()
-        self.__end_turn()
-
+    # TODO これも本来はCharacterクラスにあるべき。しかし、NPCがNPCとinteractする処理がまだ定義できない…。
     def interact_to_front(self):
         self.map_model.interact(self)
-        self.__end_turn()
+        self._end_turn()
 
-    def __end_turn(self):
+    def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(
             self._observers[0],
             self.turn_period
@@ -219,7 +226,6 @@ class Hero(People, observer.Subject):
         self.turn_manager.register(queue_entry)
 
 
-# TODO 例えばactで右に動くようにしたとき、現状はターンエンド処理が入らない。根本的に見直さないと。
 class AI(object):
     def __init__(self, villager: "Villager", map_model: "MapModel"):
         self.villager = villager
@@ -230,8 +236,6 @@ class AI(object):
         # とりあえず今は何もしない。
         self.villager.do_nothing()
 
-
-from abc import ABCMeta, abstractmethod
 
 if __name__ == '__main__':
     class TesutoBase(metaclass=ABCMeta):
@@ -282,8 +286,17 @@ if __name__ == '__main__':
 
     print("-----------------")
 
-    class TTpeople(metaclass=ABCMeta):
+    class SuperClass(object):
+        def __init__(self, name, value):
+            self.name = name
+            self.value = value
+
+        def print_name_multiple_times(self):
+            print(self.name * self.value)
+
+    class TTpeople(SuperClass, metaclass=ABCMeta):
         def __init__(self, name: str="I'm TTpeople"):
+            super(TTpeople, self).__init__(name, 3)
             self.name = name
 
         def run(self):
@@ -310,3 +323,4 @@ if __name__ == '__main__':
     ttv = TTvillager("私が村長です。")
     ttv.run()
     # nip = NoImplementer()  # TypeError: Can't instantiate abstract class TTvillager with abstract methods _end__turn
+    tth.print_name_multiple_times()
