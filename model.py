@@ -98,7 +98,6 @@ class ObstacleObject(MapObject):
         return True
 
 
-
 # 通行可能なマップオブジェクト
 class NonObstacleObject(MapObject):
     comment = "ERROR!! I'm Non_Obstacle_Object."
@@ -219,6 +218,7 @@ class Hero(People, observer.Subject):
         )
         self.turn_manager.register(queue_entry)
 
+
 # TODO 例えばactで右に動くようにしたとき、現状はターンエンド処理が入らない。根本的に見直さないと。
 class AI(object):
     def __init__(self, villager: "Villager", map_model: "MapModel"):
@@ -231,5 +231,31 @@ class AI(object):
         self.villager.do_nothing()
 
 
+from abc import ABCMeta, abstractmethod
 
+if __name__ == '__main__':
+    class TesutoBase(metaclass=ABCMeta):
 
+        @abstractmethod
+        def do_hoge(self):
+            print('abstract')
+
+    class ConcreteHoge(TesutoBase):
+        def do_wawa(self):
+            print('wawa')
+
+    class ConcreteHogePerfect(ConcreteHoge):
+        def do_hoge(self):
+            super().do_hoge()
+            print('concrete')
+
+    # aaa = TesutoBase() # TypeError
+    # aaa.do_hoge()
+
+    # bbb = ConcreteHoge()
+    # bbb.do_wawa()
+    # bbb.do_hoge()
+
+    ccc = ConcreteHogePerfect()
+    ccc.do_wawa()
+    ccc.do_hoge()
