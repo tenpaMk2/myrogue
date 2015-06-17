@@ -235,7 +235,6 @@ from abc import ABCMeta, abstractmethod
 
 if __name__ == '__main__':
     class TesutoBase(metaclass=ABCMeta):
-
         @abstractmethod
         def do_hoge(self):
             print('abstract')
@@ -249,11 +248,18 @@ if __name__ == '__main__':
             super().do_hoge()
             print('concrete')
 
+    # aaa = TesutoBase() # TypeError
+    # aaa.do_hoge()
+
+    # bbb = ConcreteHoge()
+    # bbb.do_wawa()
+    # bbb.do_hoge()
+
+    ccc = ConcreteHogePerfect()
+    ccc.do_wawa()
+    ccc.do_hoge()
 
     class Tpeople(object):
-        def __init__(self):
-            pass
-
         def run(self):
             print("run")
             self._end_turn()
@@ -269,17 +275,38 @@ if __name__ == '__main__':
     class Tvillager(Tpeople):
         pass
 
-    # aaa = TesutoBase() # TypeError
-    # aaa.do_hoge()
-
-    # bbb = ConcreteHoge()
-    # bbb.do_wawa()
-    # bbb.do_hoge()
-
-    ccc = ConcreteHogePerfect()
-    ccc.do_wawa()
-    ccc.do_hoge()
-
     th = Thero()
     th.run()
+    tv = Tvillager()
+    tv.run()
 
+    print("-----------------")
+
+    class TTpeople(metaclass=ABCMeta):
+        def __init__(self, name: str="I'm TTpeople"):
+            self.name = name
+
+        def run(self):
+            print("{0} run".format(self.name))
+            self._end_turn()
+
+        @abstractmethod
+        def _end_turn(self):
+            print("end_turn")
+
+    class TThero(TTpeople):
+        def _end_turn(self):
+            print("Hero_end_turn")
+
+    class TTvillager(TTpeople):
+        def _end_turn(self):
+            print("Villager_end_turn")
+
+    class NoImplementer(TTpeople):
+        pass
+
+    tth = TThero("HEROOOOO")
+    tth.run()
+    ttv = TTvillager("私が村長です。")
+    ttv.run()
+    # nip = NoImplementer()  # TypeError: Can't instantiate abstract class TTvillager with abstract methods _end__turn
