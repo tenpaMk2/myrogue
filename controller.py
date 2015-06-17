@@ -7,6 +7,7 @@ import view
 import observer
 
 # TODO ControllerにあてるObserverは普通のObserverで良いんだろうか。というかNPCObserverなんてもんがあっちゃまずいのか?
+# ControllerにObserverを当てる意味はないのでは…。
 # FIXME inputを始めるときにマップの描画もしちゃえばええんや！これでObserverもすっきりするんちゃう?
 # Observerを使うのは正しい。Modelから直接ControllerやViewが見えてはいけない。
 # しかし、どうやってHeroとVillagerのObserverを区別するかが問題だ。
