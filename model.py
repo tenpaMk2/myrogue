@@ -249,6 +249,26 @@ if __name__ == '__main__':
             super().do_hoge()
             print('concrete')
 
+
+    class Tpeople(object):
+        def __init__(self):
+            pass
+
+        def run(self):
+            print("run")
+            self._end_turn()
+
+        @abstractmethod
+        def _end_turn(self):
+            print("end_turn")
+
+    class Thero(Tpeople):
+        def _end_turn(self):
+            print("Hero_end_turn")
+
+    class Tvillager(Tpeople):
+        pass
+
     # aaa = TesutoBase() # TypeError
     # aaa.do_hoge()
 
@@ -259,3 +279,7 @@ if __name__ == '__main__':
     ccc = ConcreteHogePerfect()
     ccc.do_wawa()
     ccc.do_hoge()
+
+    th = Thero()
+    th.run()
+
