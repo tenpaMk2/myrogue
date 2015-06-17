@@ -20,14 +20,14 @@ class Viewer(observer.Subject):
     def draw_map(self):
         map_list = [[None for _ in range(self.map_model.width)] for _ in range(self.map_model.height)]
 
-        for floor_object in self.map_model.floor_list:
+        for floor_object in self.map_model.floor_objects:
             position = floor_object.get_position()
             y = position[0]
             x = position[1]
 
             map_list[y][x] = floor_object
 
-        for obstacle_object in self.map_model.obstacle_list:
+        for obstacle_object in self.map_model.obstacle_objects:
             position = obstacle_object.get_position()
             y = position[0]
             x = position[1]

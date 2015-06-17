@@ -21,23 +21,23 @@ class MapModel(observer.Subject):
         (self.height, self.width) = size
 
         self.message = ''
-        self.floor_list = []
-        self.obstacle_list = []
+        self.floor_objects = []
+        self.obstacle_objects = []
 
-        self.__init_floor_list()
+        self.__init_floor_objects()
         self.make_map_edge()
 
-    def __init_floor_list(self):
+    def __init_floor_objects(self):
         for y in range(self.height):
             for x in range(self.width):
                 pos_and_dir = PositionAndDirection([y, x])
-                self.floor_list.append(Floor(self, pos_and_dir))
+                self.floor_objects.append(Floor(self, pos_and_dir))
 
     def clear_message(self):
         self.message = ""
 
     def is_empty_place_at(self, position: "PositionAndDirection"):
-        obstacle_position_list = [obje.get_position() for obje in self.obstacle_list]
+        obstacle_position_list = [obje.get_position() for obje in self.obstacle_objects]
         return position not in obstacle_position_list
 
     def interact(self, people: "People"):
@@ -48,13 +48,13 @@ class MapModel(observer.Subject):
         self.notify()
 
     def get_map_object_by_position(self, position: "PositionAndDirection"):
-        for obstacle in self.obstacle_list:
-            if position == obstacle.get_position():
-                return obstacle
+        for obstacle_obje in self.obstacle_objects:
+            if position == obstacle_obje.get_position():
+                return obstacle_obje
 
-        for flo in self.floor_list:
-            if position == flo.get_position():
-                return flo
+        for floor_obje in self.floor_objects:
+            if position == floor_obje.get_position():
+                return floor_obje
 
         raise Exception("map is collapsed!!!!")
 
@@ -66,10 +66,10 @@ class MapModel(observer.Subject):
             for x in range(self.width):
                 if y == 0 or y == self.height - 1 or x == 0 or x == self.width - 1:
                     pos_and_dir = PositionAndDirection([y, x])
-                    self.obstacle_list.append(Wall(self, pos_and_dir))
+                    self.obstacle_objects.append(Wall(self, pos_and_dir))
 
     def resister_map_object(self, map_object: "MapObject"):
-        self.obstacle_list.append(map_object)
+        self.obstacle_objects.append(map_object)
 
         self.set_message(map_object, "resister {0}".format(map_object.get_position()))
         self.notify()
