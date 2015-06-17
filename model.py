@@ -37,8 +37,8 @@ class MapModel(observer.Subject):
         self.message = ""
 
     def is_empty_place_at(self, position: "PositionAndDirection"):
-        obstacle_position_list = [obje.get_position() for obje in self.obstacle_objects]
-        return position not in obstacle_position_list
+        obstacles_position = [obje.get_position() for obje in self.obstacle_objects]
+        return position not in obstacles_position
 
     def interact(self, people: "People"):
         object_front_position = people.get_front_position()
@@ -197,11 +197,11 @@ class Villager(People):
 
 class Hero(People, observer.Subject):
     pose_icon = '@'
-    direction_icon_list = ['^', '>', 'v', '<']
+    direction_icons = ['^', '>', 'v', '<']
     turn_period = 2  # FIXME パラメータの概念をそろそろ導入しないと
 
     def update_icon(self):
-        self.icon = self.direction_icon_list[self.pos_and_dir.direction]
+        self.icon = self.direction_icons[self.pos_and_dir.direction]
 
     def run(self):
         super().run()
