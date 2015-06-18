@@ -236,5 +236,3 @@ class AI(object):
         # とりあえず今は何もしない。
         self.villager.do_nothing()
 
-
-if __name__ == '__main__':
