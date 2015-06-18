@@ -4,6 +4,7 @@ __author__ = 'tenpa'
 
 import model
 import observer
+from abc import ABCMeta, abstractmethod
 
 # TODO queueが空の場合のIndexErrorを対処した方が良いかも?
 
@@ -12,7 +13,7 @@ class TurnManager(object):
         self.queue = []
         self.total_turn_count = 0
 
-    def register(self, turn_queue_entry: "INTERFACE_TurnQueueEntry"):
+    def register(self, turn_queue_entry: "TurnQueueEntryBase"):
         # まずは追加。その後に次回ターンまでの時間でソートする。
         self.queue.append(turn_queue_entry)
         self.queue.sort(key=lambda x: x.next_turn_time)
@@ -21,12 +22,12 @@ class TurnManager(object):
         current_entry = self.queue.pop(0)
         spent_time = current_entry.next_turn_time
 
-        self.__decrease_turn_time(spent_time)
+        self._decrease_turn_time(spent_time)
 
         print("start_turn:", current_entry)
         current_entry.start_turn()
 
-    def __decrease_turn_time(self, decreasing_time: int):
+    def _decrease_turn_time(self, decreasing_time: int):
         for entry in self.queue:
             entry.decrease_turn_time(decreasing_time)
 
@@ -36,33 +37,32 @@ class TurnManager(object):
             print("remain time = {0}: {1}".format(entry.next_turn_time, entry))
 
 
-class INTERFACE_TurnQueueEntry(object):
-    def __init__(self, ai_or_obs, turn_period):
-        pass
-
-    def decrease_turn_time(self, decreasing_time):
-        pass
-
-    def start_turn(self):
-        pass
-
-
-class HeroTurnQueueEntry(INTERFACE_TurnQueueEntry):
-    def __init__(self, observer: "observer.Observer", turn_period: int):
-        self.observer = observer
+class TurnQueueEntryBase(metaclass=ABCMeta):
+    @abstractmethod
+    def __init__(self, turn_period: int):
         self.next_turn_time = turn_period
 
     def decrease_turn_time(self, decreasing_time: int):
         self.next_turn_time -= decreasing_time
 
+    @abstractmethod
+    def start_turn(self):
+        pass
+
+
+class HeroTurnQueueEntry(TurnQueueEntryBase):
+    def __init__(self, observer: "observer.Observer", turn_period: int):
+        super(HeroTurnQueueEntry, self).__init__(turn_period)
+        self.observer = observer
+
     def start_turn(self):
         self.observer.update_turn_start()
 
 
-class NPCTurnQueueEntry(INTERFACE_TurnQueueEntry):
+class NPCTurnQueueEntry(TurnQueueEntryBase):
     def __init__(self, ai: "model.AI", turn_period: int):
+        super(NPCTurnQueueEntry, self).__init__(turn_period)
         self.ai = ai
-        self.next_turn_time = turn_period
 
     def decrease_turn_time(self, decreasing_time: int):
         self.next_turn_time -= decreasing_time
