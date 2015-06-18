@@ -38,23 +38,23 @@ class PositionAndDirection(object):
         self.position = position
         self.direction = direction
 
-    def __move_towards(self, direction):
+    def _move_towards(self, direction):
         self.direction = direction
 
         self.position[0] += DIRECTION_MOVE[direction][0]
         self.position[1] += DIRECTION_MOVE[direction][1]
 
     def move_north(self):
-        self.__move_towards(DIRECTION_TO_NUM['n'])
+        self._move_towards(DIRECTION_TO_NUM['n'])
 
     def move_east(self):
-        self.__move_towards(DIRECTION_TO_NUM['e'])
+        self._move_towards(DIRECTION_TO_NUM['e'])
 
     def move_south(self):
-        self.__move_towards(DIRECTION_TO_NUM['s'])
+        self._move_towards(DIRECTION_TO_NUM['s'])
 
     def move_west(self):
-        self.__move_towards(DIRECTION_TO_NUM['w'])
+        self._move_towards(DIRECTION_TO_NUM['w'])
 
     def turn_north(self):
         self.direction = DIRECTION_TO_NUM['n']
@@ -69,7 +69,7 @@ class PositionAndDirection(object):
         self.direction = DIRECTION_TO_NUM['w']
 
     def run(self):
-        self.__move_towards(self.direction)
+        self._move_towards(self.direction)
 
     def set_direction(self, direction):
         self.direction = direction

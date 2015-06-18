@@ -12,10 +12,10 @@ class Viewer(observer.Subject):
         self.map_model = map_model
 
     def draw(self):
-        self.__draw_map()
-        self.__draw_message()
+        self._draw_map()
+        self._draw_message()
 
-    def __draw_map(self):
+    def _draw_map(self):
         map_buffer = [[None for _ in range(self.map_model.width)] for _ in range(self.map_model.height)]
 
         for floor_object in self.map_model.floor_objects:
@@ -36,7 +36,7 @@ class Viewer(observer.Subject):
                 print(map_buffer[y][x].icon, end='')
             print('')
 
-    def __draw_message(self):
+    def _draw_message(self):
         print('#' * self.map_model.width)
         print("# " + self.map_model.message)
         print('#' * self.map_model.width)

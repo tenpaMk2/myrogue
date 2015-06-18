@@ -23,10 +23,10 @@ class MapModel(observer.Subject):
         self.floor_objects = []
         self.obstacle_objects = []
 
-        self.__init_floor_objects()
+        self._init_floor_objects()
         self.make_map_edge()
 
-    def __init_floor_objects(self):
+    def _init_floor_objects(self):
         for y in range(self.height):
             for x in range(self.width):
                 pos_and_dir = PositionAndDirection([y, x])
