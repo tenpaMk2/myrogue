@@ -133,3 +133,17 @@ ttv = TTvillager("私が村長です。")
 ttv.run()
 # nip = NoImplementer()  # TypeError: Can't instantiate abstract class TTvillager with abstract methods _end__turn
 tth.print_name_multiple_times()
+
+
+print("--------------------------------")
+
+class MetaclassTesuto(metaclass=ABCMeta):
+    def __init__(self):
+        print("metaclass=ABCMeta だけでは、インスタンスが生成できてしまう。")
+
+    def metaclass_ga_arudake(self):
+        print("まあでも別にいいかなぁー?")
+
+metaclasstesuto = MetaclassTesuto()
+metaclasstesuto.metaclass_ga_arudake()
+
