@@ -33,7 +33,7 @@ class Controller(observer.Subject):
             self.hero.move_north()
         elif arg in (3, 'W', 'w'):
             self.hero.move_west()
-        elif arg in ('a', 'A'):
+        elif arg in ('i', 'I'):
             self.hero.interact_to_front()
         elif arg in ('r', 'R'):
             self.hero.run()
