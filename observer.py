@@ -16,6 +16,7 @@ class Subject(object):
     def remove_observer(self, observer):
         self._observers.remove(observer)
 
+    # notifyの呼び出しもとってMapModelなんだよね。turn_endのときしか更新しないなら、なんかもういらない感ある。
     def notify(self):
         for observer in self._observers:
             observer.update()
@@ -25,27 +26,34 @@ class Subject(object):
 import view
 import controller
 
+from abc import ABCMeta, abstractmethod
 
-# View-Model-Observerで循環参照してるので、初回だけはviewerにはNoneが入る。後でセットされる。
-# 追記：controllerも後でセットされる。
-class Observer(object):
+
+class ObserverBase(metaclass=ABCMeta):
     def __init__(self, viewer: "view.Viewer", my_keyboard: "controller.Controller"):
-        self.view = viewer
+        self.viewer = viewer
         self.controller = my_keyboard
 
+    @abstractmethod
     def update(self):
-        self.view.draw()
+        pass
+
+    @abstractmethod
+    def update_turn_start(self):
+        pass
+
+class Observer(ObserverBase):
+    def update(self):
+        self.viewer.draw()
 
     def update_turn_start(self):
-        self.view.draw()
+        self.viewer.draw()
         self.controller.start_input()
 
 
 # turn_endはロジックに関わるので、Observerに書くべきではないと判断。
 
-# FIXME 継承でメソッドを潰すのは良くないと思うんだよなあ。
-# FIXME そのためにはABC使わないとだめか?
-class NPCObserver(Observer):
+class NPCObserver(ObserverBase):
     def update(self):
         pass
 

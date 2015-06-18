@@ -51,7 +51,7 @@ class TurnQueueEntryBase(metaclass=ABCMeta):
 
 
 class HeroTurnQueueEntry(TurnQueueEntryBase):
-    def __init__(self, observer: "observer.Observer", turn_period: int):
+    def __init__(self, observer: "observer.ObserverBase", turn_period: int):
         super(HeroTurnQueueEntry, self).__init__(turn_period)
         self.observer = observer
 
@@ -73,7 +73,7 @@ class NPCTurnQueueEntry(TurnQueueEntryBase):
 
 class TurnQueueEntryFactory(object):
     @staticmethod
-    def make_hero_turn_queue(observer: "observer.Observer", turn_period: int):
+    def make_hero_turn_queue(observer: "observer.ObserverBase", turn_period: int):
         return HeroTurnQueueEntry(observer, turn_period)
 
     @staticmethod
@@ -82,10 +82,12 @@ class TurnQueueEntryFactory(object):
 
 
 if __name__ == "__main__":
-    # FIXME ここも本来はObserverを継承すべき。やはりABCを使うのがメソッドの定義し忘れがなくて安全か。
-    class TestObserver(object):
+    class TestObserver(observer.ObserverBase):
         def __init__(self, name: str="hoge"):
             self.name = name
+
+        def update(self):
+            pass
 
         def update_turn_start(self):
             print("---current Hero turn---")
