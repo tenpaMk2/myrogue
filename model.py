@@ -191,7 +191,7 @@ class Villager(Character):
                  comment: str="hoge"):
         super().__init__(map_model, pos_and_dir, turn_manager)
         self.comment = comment
-        self.ai = AI(self, map_model)
+        self.ai = VillagerAI(self, map_model)
 
     def get_comment(self):
         return self.comment
@@ -225,8 +225,12 @@ class Hero(Character, observer.Subject):
         )
         self.turn_manager.register(queue_entry)
 
+class AIBase(metaclass=ABCMeta):
+    @abstractmethod
+    def act(self):
+        pass
 
-class AI(object):
+class VillagerAI(AIBase):
     def __init__(self, villager: "Villager", map_model: "MapModel"):
         self.villager = villager
         self.map_model = map_model

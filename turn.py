@@ -60,7 +60,7 @@ class HeroTurnQueueEntry(TurnQueueEntryBase):
 
 
 class NPCTurnQueueEntry(TurnQueueEntryBase):
-    def __init__(self, ai: "model.AI", turn_period: int):
+    def __init__(self, ai: "model.AIBase", turn_period: int):
         super(NPCTurnQueueEntry, self).__init__(turn_period)
         self.ai = ai
 
@@ -77,7 +77,7 @@ class TurnQueueEntryFactory(object):
         return HeroTurnQueueEntry(observer, turn_period)
 
     @staticmethod
-    def make_npc_turn_queue(ai: "model.AI", turn_period: int):
+    def make_npc_turn_queue(ai: "model.AIBase", turn_period: int):
         return NPCTurnQueueEntry(ai, turn_period)
 
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
             print(self.name)
             print('')
 
-    class TestAI(object):
+    class TestAI(model.AIBase):
         def __init__(self, name: str="AI"):
             self.name = name
 
