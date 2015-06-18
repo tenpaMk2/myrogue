@@ -115,7 +115,7 @@ class Wall(ObstacleObject):
     comment = "It's a wall."
 
 
-#FIXME 抽象基底クラスなので、インスタンス化はできない。インスタンス化を考慮したクラス変数などは除外すべき?
+# FIXME 抽象基底クラスなので、インスタンス化はできない。インスタンス化を考慮したクラス変数などは除外すべき?
 class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
     pose_icon = 'P'
     comment = "It's a Character"
@@ -235,4 +235,3 @@ class AI(object):
         # ここにAIのロジック
         # とりあえず今は何もしない。
         self.villager.do_nothing()
-
