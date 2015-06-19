@@ -152,6 +152,7 @@ print("-----pygame-----------")
 import sys, pygame
 
 pygame.init()
+clock = pygame.time.Clock()
 
 size = width, height = 320, 240
 speed = [2, 2]
@@ -161,10 +162,12 @@ screen = pygame.display.set_mode(size)
 
 ball = pygame.image.load("burn.jpg")
 ballrect = ball.get_rect()
+ballrect2 = ballrect.move(speed)
 
 while 1:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
+    clock.tick(10)
 
     ballrect = ballrect.move(speed)
     if ballrect.left < 0 or ballrect.right > width:
@@ -175,5 +178,9 @@ while 1:
     screen.fill(black)
     screen.blit(ball, ballrect)
     pygame.display.flip()
+
+    # screen.fill(black)
+    # screen.blit(ball, ballrect2)
+    # pygame.display.flip()
 
 print("終了")
