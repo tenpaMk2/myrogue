@@ -220,7 +220,7 @@ class Hero(Character, observer.Subject):
 
     def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(
-            self._observers[0], # FIXME 怪しすぎるコード。observerでいいのか考え直そう。
+            self._observers[0], # FIXME 怪しすぎるコード。observerでいいのか考え直そう。observersを投げて処理すれば良いんでね?
             self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
