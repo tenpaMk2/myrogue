@@ -243,6 +243,7 @@ class VillagerAI(AIBase):
         self.villager.do_nothing()
 
 
+# TODO 勇者や村人によってパラメーターをどのように分けるべきか。内容とロジックの両方を考えよう。ParameterFactoryがいるかな。
 class Parameter(object):
     def __init__(self):
         self.hp = 100
