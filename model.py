@@ -128,6 +128,8 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
         super(Character, self).__init__(map_model, pos_and_dir)
         self.turn_manager = turn_manager
 
+        self.parameter = Parameter()
+
         observer.Subject.__init__(self)
 
     def run(self):
@@ -185,7 +187,6 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
 class Villager(Character):
     pose_icon = "V"
     direction_icons = ['V', 'V', 'V', 'V']
-    turn_period = 5  # FIXME パラメータの概念をそろそろ導入しないと
 
     def __init__(self, map_model: MapModel, pos_and_dir: "PositionAndDirection", turn_manager: "turn.TurnManager",
                  comment: str="hoge"):
@@ -203,7 +204,7 @@ class Villager(Character):
     def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
             self.ai,
-            self.turn_period
+            self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
 
@@ -211,7 +212,6 @@ class Villager(Character):
 class Hero(Character, observer.Subject):
     pose_icon = '@'
     direction_icons = ['^', '>', 'v', '<']
-    turn_period = 2  # FIXME パラメータの概念をそろそろ導入しないと
 
     # TODO これも本来はCharacterクラスにあるべき。しかし、NPCがNPCとinteractする処理がまだ定義できない…。
     def interact_to_front(self):
@@ -220,8 +220,8 @@ class Hero(Character, observer.Subject):
 
     def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(
-            self._observers[0],
-            self.turn_period
+            self._observers[0], # FIXME 怪しすぎるコード。observerでいいのか考え直そう。
+            self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
 
@@ -241,3 +241,17 @@ class VillagerAI(AIBase):
         # ここにAIのロジック
         # とりあえず今は何もしない。
         self.villager.do_nothing()
+
+
+class Parameter(object):
+    def __init__(self):
+        self.hp = 100
+        self.mp = 50
+
+        self.strength = 20
+        self.toughness = 10
+
+        self.turn_period = 5
+
+    def load_parameter(self):
+        print("load_parameter")
