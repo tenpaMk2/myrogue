@@ -42,6 +42,7 @@ class ObserverBase(metaclass=ABCMeta):
     def update_turn_start(self):
         pass
 
+
 class Observer(ObserverBase):
     def update(self):
         self.viewer.draw()

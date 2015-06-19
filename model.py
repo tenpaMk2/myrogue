@@ -225,10 +225,12 @@ class Hero(Character, observer.Subject):
         )
         self.turn_manager.register(queue_entry)
 
+
 class AIBase(metaclass=ABCMeta):
     @abstractmethod
     def act(self):
         pass
+
 
 class VillagerAI(AIBase):
     def __init__(self, villager: "Villager", map_model: "MapModel"):

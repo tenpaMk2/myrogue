@@ -6,7 +6,6 @@ import model
 import observer
 from abc import ABCMeta, abstractmethod
 
-# TODO queueが空の場合のIndexErrorを対処した方が良いかも?
 
 class TurnManager(object):
     def __init__(self):
