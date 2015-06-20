@@ -30,9 +30,9 @@ villager1 = model.Villager(map_model, PositionAndDirection([2, 2]), villager1_pa
 villager2 = model.Villager(map_model, PositionAndDirection([1, 4]), villager2_parameter, turn_manager, "ya, Hage.")
 
 # Mapへの登録
-map_model.resister_map_object(hero)
-map_model.resister_map_object(villager1)
-map_model.resister_map_object(villager2)
+map_model.register_obstacle(hero)
+map_model.register_obstacle(villager1)
+map_model.register_obstacle(villager2)
 
 # Controller
 my_keyboard = controller.Controller(hero, viewer)

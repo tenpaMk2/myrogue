@@ -35,18 +35,18 @@ class MapModel(observer.Subject):
     def clear_message(self):
         self.message = ""
 
-    def is_empty_place_at(self, position: "PositionAndDirection"):
+    def is_empty_place_at(self, position):
         obstacles_position = [obje.get_position() for obje in self.obstacle_objects]
         return position not in obstacles_position
 
     def interact(self, people: "Character"):
         object_front_position = people.get_front_position()
-        interact_object = self.get_map_object_by_position(object_front_position)
+        interact_object = self.get_map_object_at(object_front_position)
 
         self.set_message(interact_object, interact_object.comment)
         self.notify()
 
-    def get_map_object_by_position(self, position: "PositionAndDirection"):
+    def get_map_object_at(self, position):
         for obstacle_obje in self.obstacle_objects:
             if position == obstacle_obje.get_position():
                 return obstacle_obje
@@ -56,6 +56,13 @@ class MapModel(observer.Subject):
                 return floor_obje
 
         raise Exception("map is collapsed!!!!")
+
+    def get_character_at(self, position):
+        for obstacle_obje in self.obstacle_objects:
+            if position == obstacle_obje.get_position():
+                if isinstance(obstacle_obje, Character):
+                    return obstacle_obje
+        return None
 
     def set_message(self, map_object: "MapObject", message: str):
         self.message = "{0} >{1}".format(map_object.pose_icon, message)
@@ -67,11 +74,47 @@ class MapModel(observer.Subject):
                     pos_and_dir = PositionAndDirection([y, x])
                     self.obstacle_objects.append(Wall(self, pos_and_dir))
 
-    def resister_map_object(self, map_object: "MapObject"):
-        self.obstacle_objects.append(map_object)
+    def register_obstacle(self, obstacle_object: "ObstacleObject"):
+        self.obstacle_objects.append(obstacle_object)
 
-        self.set_message(map_object, "resister {0}".format(map_object.get_position()))
+        self.set_message(obstacle_object, "resister {0}".format(obstacle_object.get_position()))
         self.notify()
+
+    def remove_obstacle(self, obstacle_object: "ObstacleObject"):
+        self.obstacle_objects.remove(obstacle_object)
+
+        self.set_message(obstacle_object, "remove {0}".format(obstacle_object.get_position()))
+        self.notify()
+
+
+class BattleField(object):
+    def __init__(self, map_model:"MapModel", attacker:"Character"):
+        self.map_model = map_model
+        self.attacker = attacker
+
+    def attack_to(self, position):
+        defender = self.map_model.get_character_at(position)
+
+        self._battle(defender)
+
+    def _battle(self, defender: "Character"):
+        atk_str = self.attacker.parameter.strength
+        def_tou = defender.parameter.toughness
+
+        print("atk_str : {0}".format(atk_str))
+        print("def_tou : {0}".format(def_tou))
+
+        damage = atk_str - def_tou
+        print("damage : {0}".format(damage))
+        cut_damage = damage if damage > 0 else 0
+        print("cut_damage : {0}".format(cut_damage))
+
+        defender.parameter.hp -= cut_damage
+        print("defender hp : {0}".format(defender.parameter.hp))
+
+        if defender.is_died():
+            defender.die()
+            print("die!!")
 
 
 # 全てのマップオブジェクトの基本となるクラス
@@ -163,6 +206,13 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
         self._update_icon()
         self.run()
 
+    def attack_front(self):
+        bf = BattleField(self.map_model, self)
+        bf.attack_to(self.get_front_position())
+        self.throw_message("attack to {0}".format(self.get_front_position()))
+
+        self._end_turn()
+
     def throw_message(self, message: str):
         self.map_model.set_message(self, message)
 
@@ -177,6 +227,13 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
 
     def get_icon(self):
         return self.icon
+
+    def is_died(self):
+        return True if self.parameter.hp < 0 else False
+
+    def die(self):
+        self.map_model.remove_obstacle(self)
+        del self
 
     @abstractmethod
     def _end_turn(self):
@@ -309,3 +366,19 @@ if __name__ == '__main__':
     para_v = ParameterFactory.make_villager()
     print(para_v)
     print(para_v.__dict__)
+
+    class HHH(object):
+        def __init__(self, abc):
+            self.abc = abc
+            self.pos_and_dir = PositionAndDirection([2, 2], 0)
+
+    hhh = HHH("fjoijio")
+
+    aho = list()
+    aho.append(1)
+    aho.append(hhh)
+    aho.append('c')
+
+    print(aho)
+    del hhh
+    # print(hhh.abc)
