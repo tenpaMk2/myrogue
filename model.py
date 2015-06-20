@@ -115,20 +115,19 @@ class Wall(ObstacleObject):
     comment = "It's a wall."
 
 
-# FIXME 抽象基底クラスなので、インスタンス化はできない。インスタンス化を考慮したクラス変数などは除外すべき?
 class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
     pose_icon = 'P'
     comment = "It's a Character"
     direction_icons = ['P', 'P', 'P', 'P']
 
-    def __init__(self,
-                 map_model: "MapModel",
+    def __init__(self, map_model: "MapModel",
                  pos_and_dir: "PositionAndDirection",
+                 parameter: "Parameter",
                  turn_manager: "turn.TurnManager"):
         super(Character, self).__init__(map_model, pos_and_dir)
         self.turn_manager = turn_manager
 
-        self.parameter = Parameter()
+        self.parameter = parameter
 
         observer.Subject.__init__(self)
 
@@ -188,9 +187,14 @@ class Villager(Character):
     pose_icon = "V"
     direction_icons = ['V', 'V', 'V', 'V']
 
-    def __init__(self, map_model: MapModel, pos_and_dir: "PositionAndDirection", turn_manager: "turn.TurnManager",
-                 comment: str="hoge"):
-        super().__init__(map_model, pos_and_dir, turn_manager)
+    def __init__(self,
+                 map_model: "MapModel",
+                 pos_and_dir: "PositionAndDirection",
+                 parameter: "Parameter",
+                 turn_manager: "turn.TurnManager",
+                 comment: str="hoge"
+                 ):
+        super().__init__(map_model, pos_and_dir, parameter, turn_manager)
         self.comment = comment
         self.ai = VillagerAI(self, map_model)
 
@@ -209,7 +213,7 @@ class Villager(Character):
         self.turn_manager.register(queue_entry)
 
 
-class Hero(Character, observer.Subject):
+class Hero(Character):
     pose_icon = '@'
     direction_icons = ['^', '>', 'v', '<']
 
@@ -220,7 +224,7 @@ class Hero(Character, observer.Subject):
 
     def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(
-            self._observers[0], # FIXME 怪しすぎるコード。observerでいいのか考え直そう。observersを投げて処理すれば良いんでね?
+            self._observers[0],  # FIXME 怪しすぎるコード。observerでいいのか考え直そう。observersを投げて処理すれば良いんでね?
             self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
@@ -243,16 +247,71 @@ class VillagerAI(AIBase):
         self.villager.do_nothing()
 
 
-# TODO 勇者や村人によってパラメーターをどのように分けるべきか。内容とロジックの両方を考えよう。ParameterFactoryがいるかな。
+import json, os
+
+# TODO どこかで設定用の変数を集めたファイルが必要だ。
+PARAMETERS_DIRECTORY = os.path.join("parameters")
+
+
+class ParameterFactory(object):
+    @staticmethod
+    def make_hero():
+        hero_file = os.path.join(PARAMETERS_DIRECTORY, "default_hero_000.json")
+        hero_parameter = ParameterFactory._load_parameter(hero_file)
+        parameter = ParameterFactory._make_parameter_from_json(hero_parameter)
+
+        return parameter
+
+    @staticmethod
+    def make_villager():
+        villager_file = os.path.join(PARAMETERS_DIRECTORY, "default_villager_000.json")
+        villager_parameter = ParameterFactory._load_parameter(villager_file)
+        parameter = ParameterFactory._make_parameter_from_json(villager_parameter)
+
+        return parameter
+
+    @staticmethod
+    def _load_parameter(file_path):
+        with open(file_path, mode='r', encoding="utf-8") as f:
+            parameter_json = json.load(f)
+        return parameter_json
+
+    @staticmethod
+    def _make_parameter_from_json(json_parameter):
+        parameter = Parameter(
+            hp=json_parameter["hp"],
+            mp=json_parameter["mp"],
+            strength=json_parameter["strength"],
+            toughness=json_parameter["toughness"],
+            turn_period=json_parameter["turn_period"],
+        )
+
+        return parameter
+
+
 class Parameter(object):
-    def __init__(self):
-        self.hp = 100
-        self.mp = 50
+    def __init__(self,
+                 hp: int=100,
+                 mp: int=50,
+                 strength: int=20,
+                 toughness: int=10,
+                 turn_period: int=5):
+        self.hp = hp
+        self.mp = mp
 
-        self.strength = 20
-        self.toughness = 10
+        self.strength = strength
+        self.toughness = toughness
 
-        self.turn_period = 5
+        self.turn_period = turn_period
 
     def load_parameter(self):
         print("load_parameter")
+
+
+if __name__ == '__main__':
+    para = ParameterFactory.make_hero()
+    print(para)
+    print(para.__dict__)
+    para_v = ParameterFactory.make_villager()
+    print(para_v)
+    print(para_v.__dict__)

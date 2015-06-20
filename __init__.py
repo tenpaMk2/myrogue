@@ -21,10 +21,13 @@ viewer = view.Viewer(map_model)
 
 # HeroとPeopleの作製
 hero_pos = PositionAndDirection([1, 1], 0)
-hero = model.Hero(map_model, hero_pos, turn_manager)
+hero_parameter = model.ParameterFactory.make_hero()
+hero = model.Hero(map_model, hero_pos, hero_parameter, turn_manager)
 
-villager1 = model.Villager(map_model, PositionAndDirection([2, 2]), turn_manager, "Yo! Hage!")
-villager2 = model.Villager(map_model, PositionAndDirection([1, 4]), turn_manager, "Hello, Hage!")
+villager1_parameter = model.ParameterFactory.make_villager()
+villager2_parameter = model.ParameterFactory.make_villager()
+villager1 = model.Villager(map_model, PositionAndDirection([2, 2]), villager1_parameter, turn_manager, "Yo! Hage!")
+villager2 = model.Villager(map_model, PositionAndDirection([1, 4]), villager2_parameter, turn_manager, "ya, Hage.")
 
 # Mapへの登録
 map_model.resister_map_object(hero)
@@ -47,9 +50,9 @@ my_keyboard.add_observer(observer.Observer(viewer, my_keyboard))
 # TurnManagerに追加
 hero_turn_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(hero._observers[0], 0)
 turn_manager.register(hero_turn_entry)
-villager1_turn_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(villager1.ai, 10)
+villager1_turn_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(villager1.ai, 0)
 turn_manager.register(villager1_turn_entry)
-villager2_turn_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(villager2.ai, 10)
+villager2_turn_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(villager2.ai, 0)
 turn_manager.register(villager2_turn_entry)
 
 # warnings.warn("ahoaho")
