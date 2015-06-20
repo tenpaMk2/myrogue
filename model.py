@@ -57,6 +57,7 @@ class MapModel(observer.Subject):
 
         raise Exception("map is collapsed!!!!")
 
+    # TODO filterかなんかで効率化できそう。
     def get_character_at(self, position):
         for obstacle_obje in self.obstacle_objects:
             if position == obstacle_obje.get_position():
@@ -95,7 +96,11 @@ class BattleField(object):
     def attack_to(self, position):
         defender = self.map_model.get_character_at(position)
 
-        self._battle(defender)
+        if defender is not None:
+            self._battle(defender)
+            self.attacker.throw_message("attack to {0} : {1}".format(defender.pose_icon, position))
+        else:
+            self.attacker.throw_message("Oops! No one is in front of me. : {0}".format(position))
 
     def _battle(self, defender: "Character"):
         atk_str = self.attacker.parameter.strength
@@ -209,7 +214,6 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
     def attack_front(self):
         bf = BattleField(self.map_model, self)
         bf.attack_to(self.get_front_position())
-        self.throw_message("attack to {0}".format(self.get_front_position()))
 
         self._end_turn()
 
