@@ -278,13 +278,7 @@ class ParameterFactory(object):
 
     @staticmethod
     def _make_parameter_from_json(json_parameter):
-        parameter = Parameter(
-            hp=json_parameter["hp"],
-            mp=json_parameter["mp"],
-            strength=json_parameter["strength"],
-            toughness=json_parameter["toughness"],
-            turn_period=json_parameter["turn_period"],
-        )
+        parameter = Parameter(**json_parameter)
 
         return parameter
 

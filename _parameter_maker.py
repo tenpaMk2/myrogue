@@ -43,13 +43,7 @@ write_parameter_json(default_villager_parameter_file, default_villager_parameter
 
 with open(default_hero_parameter_file, mode='r', encoding="utf-8") as f:
     hoge = json.load(f)
-    reconstruct_hero_parameter = model.Parameter(
-        hp=hoge["hp"],
-        mp=hoge["mp"],
-        strength=hoge["strength"],
-        toughness=hoge["toughness"],
-        turn_period=hoge["turn_period"]
-    )
+    reconstruct_hero_parameter = model.Parameter(**hoge)
 print(reconstruct_hero_parameter.__dict__)
 print(default_hero_parameter.__dict__)
 if reconstruct_hero_parameter.__dict__ == default_hero_parameter.__dict__:
