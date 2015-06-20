@@ -32,14 +32,16 @@ write_parameter_json(default_hero_parameter_file, default_hero_parameter)
 
 default_villager_parameter_file = os.path.join(parameters_directory, "default_villager_000.json")
 default_villager_parameter = model.Parameter(
-    hp=80,
-    mp=10,
+    hp=20,
+    mp=5,
     strength=8,
-    toughness=6,
+    toughness=3,
     turn_period=14
 )
 
 write_parameter_json(default_villager_parameter_file, default_villager_parameter)
+
+print("---------check load------------")
 
 with open(default_hero_parameter_file, mode='r', encoding="utf-8") as f:
     hoge = json.load(f)
