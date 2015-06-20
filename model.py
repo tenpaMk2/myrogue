@@ -344,6 +344,7 @@ class ParameterFactory(object):
         return parameter
 
 
+# TODO 敵対状態かどうかの設定がいる。
 class Parameter(object):
     def __init__(self,
                  hp: int=100,
