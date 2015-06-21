@@ -224,9 +224,7 @@ class Area(AreaBase):
 
     def make_plain_room(self):
         max_top = self.valid_area.bottom - (self.padding_y + 1)
-        min_bottom = self.valid_area.top + (self.padding_y + 1)
         max_left = self.valid_area.right - (self.padding_x + 1)
-        min_right = self.valid_area.left + (self.padding_x + 1)
 
         top = random.randint(self.valid_area.top, max_top)
         left = random.randint(self.valid_area.left, max_left)
