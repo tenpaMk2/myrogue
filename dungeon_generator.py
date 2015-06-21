@@ -2,9 +2,12 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
-import model
 import random
 from abc import ABCMeta, abstractmethod
+
+ROOM_MARGIN = 3
+ROOM_PADDING_Y = 3
+ROOM_PADDING_X = 3
 
 NOTHING = ' '
 WALL = '#'
@@ -12,8 +15,6 @@ FLOOR = '.'
 ROUTE = ','
 ROUTE_CANDIDATE = '\''
 DOOR = '+'
-
-ROOM_PADDING = 1
 
 NORTH = 0
 EAST = 1
@@ -28,9 +29,8 @@ FLIPPED_DIRECTION = {
     WEST: EAST
 }
 
-# FIXME ROOM生成時にドアの場所なども生成するべき
-# FIXME ROOMがちゃんと一つ以上のFLOORを持つようにすべき
-class Room(object):
+
+class AreaBase(metaclass=ABCMeta):
     def __init__(self, top: int, right: int, bottom: int, left: int):
         self.top = top
         self.right = right
@@ -39,6 +39,15 @@ class Room(object):
 
         self.height = self.bottom - self.top + 1
         self.width = self.right - self.left + 1
+
+    def get_area(self):
+        # 紛らわしいが面積のこと
+        return self.height * self.width
+
+
+class Room(AreaBase):
+    def __init__(self, top: int, right: int, bottom: int, left: int):
+        super(Room, self).__init__(top, right, bottom, left)
 
         self.door_position = (None, None)
 
@@ -94,26 +103,12 @@ class Route(object):
         parent_door_g_y, parent_door_g_x = self.parent_room.door_position
         child_door_g_y, child_door_g_x = self.child_room.door_position
 
-        print("({0}, {1}) and ({2}, {3})".format(parent_door_g_y, parent_door_g_x, child_door_g_y, child_door_g_x))
+        print("({0}, {1}) and ({2}, {3})"
+              .format(parent_door_g_y, parent_door_g_x, child_door_g_y, child_door_g_x))
 
     def make_door(self):
         self.parent_room.make_door(self.parent_area.border_side)
         self.child_room.make_door(FLIPPED_DIRECTION[self.parent_area.border_side])
-
-
-class AreaBase(metaclass=ABCMeta):
-    def __init__(self, top: int, right: int, bottom: int, left: int):
-        self.top = top
-        self.right = right
-        self.bottom = bottom
-        self.left = left
-
-        self.height = self.bottom - self.top + 1
-        self.width = self.right - self.left + 1
-
-    def get_area(self):
-        # 紛らわしいが面積のこと
-        return self.height * self.width
 
 
 class ValidArea(AreaBase):
@@ -134,14 +129,15 @@ class Area(AreaBase):
         self.room = None
 
         self.border_side = NODIRECTION
-        self.padding = ROOM_PADDING  # min width(height) is padding*2+1
+        self.margin = ROOM_MARGIN  # min width(height) is padding*2+1
+        self.padding_y = ROOM_PADDING_Y
+        self.padding_x = ROOM_PADDING_X
 
-
-        # 分割候補の幅。分割された側に境界（b）が含まれることも考えて、必ず(padding*2+1)^2の空間が残るようにしてある。
-        self.top_split_max = self.top + (self.padding * 2 + 1)
-        self.bottom_split_max = self.bottom - (self.padding * 2 + 1)
-        self.left_split_max = self.left + (self.padding * 2 + 1)
-        self.right_split_max = self.right - (self.padding * 2 + 1)
+        # 分割候補の幅。分割された側に境界（b）が含まれることも考えて、必ず(margin*2+1)^2の空間が残るようにしてある。
+        self.top_split_max = self.top + (self.padding_y + 2)
+        self.bottom_split_max = self.bottom - (self.padding_y + 2)
+        self.left_split_max = self.left + (self.padding_x + 2)
+        self.right_split_max = self.right - (self.padding_x + 2)
 
     # TODO hとvで別々なのは単調すぎる。どこかで統一できるはず。
     def split_h(self):
@@ -227,12 +223,18 @@ class Area(AreaBase):
             return True
 
     def make_plain_room(self):
-        # g_t = random.randint(self.valid_area.top)
+        max_top = self.valid_area.bottom - (self.padding_y + 1)
+        min_bottom = self.valid_area.top + (self.padding_y + 1)
+        max_left = self.valid_area.right - (self.padding_x + 1)
+        min_right = self.valid_area.left + (self.padding_x + 1)
 
-        self.room = Room(self.valid_area.top,
-                         self.valid_area.right,
-                         self.valid_area.bottom,
-                         self.valid_area.left)
+        top = random.randint(self.valid_area.top, max_top)
+        left = random.randint(self.valid_area.left, max_left)
+
+        bottom = random.randint(top + (self.padding_y + 1), self.valid_area.bottom)
+        right = random.randint(left + (self.padding_x + 1), self.valid_area.right)
+
+        self.room = Room(top, right, bottom, left)
 
     def has_room(self):
         return True if self.room is not None else False
