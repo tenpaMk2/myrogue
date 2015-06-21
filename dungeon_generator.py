@@ -4,30 +4,138 @@ __author__ = 'tenpa'
 
 import model
 import random
+from abc import ABCMeta, abstractmethod
 
-FLOOR = 0
-WALL = 1
-ROUTE = 2
+NOTHING = ' '
+WALL = '#'
+FLOOR = '.'
+ROUTE = ','
+ROUTE_CANDIDATE = '\''
+DOOR = '+'
 
-ROOM_PADDING = 3
+ROOM_PADDING = 1
 
+NORTH = 0
+EAST = 1
+SOUTH = 2
+WEST = 3
+NODIRECTION = 4
 
-class Area(object):
-    TOP = 0
-    RIGHT = 1
-    BOTTOM = 2
-    LEFT = 3
+FLIPPED_DIRECTION = {
+    NORTH: SOUTH,
+    SOUTH: NORTH,
+    EAST: WEST,
+    WEST: EAST
+}
 
-    def __init__(self, top: int, right: int, bottom: int, left: int, index: int=1):
-        self.index = index
-
+# FIXME ROOM生成時にドアの場所なども生成するべき
+# FIXME ROOMがちゃんと一つ以上のFLOORを持つようにすべき
+class Room(object):
+    def __init__(self, top: int, right: int, bottom: int, left: int):
         self.top = top
         self.right = right
         self.bottom = bottom
         self.left = left
 
-        self.border_side = None
+        self.height = self.bottom - self.top + 1
+        self.width = self.right - self.left + 1
+
+        self.door_position = (None, None)
+
+        self.map = [[None for _ in range(self.width)] for _ in range(self.height)]
+
+        self._make_wall()
+
+    def _make_wall(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                if y == 0 or y == self.height - 1 or x == 0 or x == self.width - 1:
+                    self.map[y][x] = WALL
+                else:
+                    self.map[y][x] = FLOOR
+
+    def make_door(self, edge_select=NORTH):
+        if edge_select == NORTH:
+            door_g_y = self.top
+            door_g_x = random.randint(self.left + 1, self.right - 1)
+
+        elif edge_select == EAST:
+            door_g_y = random.randint(self.top + 1, self.bottom - 1)
+            door_g_x = self.right
+
+        elif edge_select == SOUTH:
+            door_g_y = self.bottom
+            door_g_x = random.randint(self.left + 1, self.right - 1)
+
+        elif edge_select == WEST:
+            door_g_y = random.randint(self.top + 1, self.bottom - 1)
+            door_g_x = self.left
+
+        else:
+            raise Exception("edge_select must be NORTH~WEST")
+
+        self.door_position = (door_g_y, door_g_x)
+        self.map[door_g_y - self.top][door_g_x - self.left] = DOOR
+
+
+class Route(object):
+    def __init__(self, parent_area: "Area", child_area: "Area"):
+        self.parent_area = parent_area
+        self.child_area = child_area
+
+        self.parent_room = self.parent_area.room
+        self.child_room = self.child_area.room
+
+        self.route_positions = []
+
+    def make_route(self):
+        self.make_door()
+
+        parent_door_g_y, parent_door_g_x = self.parent_room.door_position
+        child_door_g_y, child_door_g_x = self.child_room.door_position
+
+        print("({0}, {1}) and ({2}, {3})".format(parent_door_g_y, parent_door_g_x, child_door_g_y, child_door_g_x))
+
+    def make_door(self):
+        self.parent_room.make_door(self.parent_area.border_side)
+        self.child_room.make_door(FLIPPED_DIRECTION[self.parent_area.border_side])
+
+
+class AreaBase(metaclass=ABCMeta):
+    def __init__(self, top: int, right: int, bottom: int, left: int):
+        self.top = top
+        self.right = right
+        self.bottom = bottom
+        self.left = left
+
+        self.height = self.bottom - self.top + 1
+        self.width = self.right - self.left + 1
+
+    def get_area(self):
+        # 紛らわしいが面積のこと
+        return self.height * self.width
+
+
+class ValidArea(AreaBase):
+    pass
+
+
+class Border(AreaBase):
+    pass
+
+
+class Area(AreaBase):
+    def __init__(self, top: int, right: int, bottom: int, left: int, index: int=1):
+        super(Area, self).__init__(top, right, bottom, left)
+        self.index = index
+
+        self.valid_area = ValidArea(self.top, self.right, self.bottom, self.left)
+        self.border = None
+        self.room = None
+
+        self.border_side = NODIRECTION
         self.padding = ROOM_PADDING  # min width(height) is padding*2+1
+
 
         # 分割候補の幅。分割された側に境界（b）が含まれることも考えて、必ず(padding*2+1)^2の空間が残るようにしてある。
         self.top_split_max = self.top + (self.padding * 2 + 1)
@@ -46,15 +154,19 @@ class Area(object):
 
         if top_or_bottom == 0:
             new_area = Area(self.top, self.right, border_h - 1, self.left, self.index + 1)
-            self.border_side = self.TOP
+            self.border_side = NORTH
             self.top = border_h
+            self.border = Border(self.top, self.right, self.top, self.left)
+            self.valid_area.top = border_h + 1
 
             print("split to top : border_h : {0}".format(border_h))
 
         elif top_or_bottom == 1:
             new_area = Area(border_h + 1, self.right, self.bottom, self.left, self.index + 1)
-            self.border_side = self.BOTTOM
+            self.border_side = SOUTH
             self.bottom = border_h
+            self.border = Border(self.bottom, self.right, self.bottom, self.left)
+            self.valid_area.bottom = border_h - 1
 
             print("split to bottom : border_h : {0}".format(border_h))
 
@@ -73,15 +185,19 @@ class Area(object):
 
         if left_or_right == 0:
             new_area = Area(self.top, border_v - 1, self.bottom, self.left, self.index + 1)
-            self.border_side = self.LEFT
+            self.border_side = WEST
             self.left = border_v
+            self.border = Border(self.top, self.left, self.bottom, self.left)
+            self.valid_area.left = border_v + 1
 
             print("split to left : border_v : {0}".format(border_v))
 
         elif left_or_right == 1:
             new_area = Area(self.top, self.right, self.bottom, border_v + 1, self.index + 1)
-            self.border_side = self.RIGHT
+            self.border_side = EAST
             self.right = border_v
+            self.border = Border(self.top, self.right, self.bottom, self.right)
+            self.valid_area.right = border_v - 1
 
             print("split to right : border_v : {0}".format(border_v))
 
@@ -110,17 +226,28 @@ class Area(object):
         else:
             return True
 
-    def get_area(self):
-        # 紛らわしいが面積のこと
-        return (self.bottom + 1 - self.top) * (self.right + 1 - self.left)
+    def make_plain_room(self):
+        # g_t = random.randint(self.valid_area.top)
+
+        self.room = Room(self.valid_area.top,
+                         self.valid_area.right,
+                         self.valid_area.bottom,
+                         self.valid_area.left)
+
+    def has_room(self):
+        return True if self.room is not None else False
+
+    def has_border(self):
+        return True if self.border is not None else False
 
 
 class DungeonGenerator(object):
     def __init__(self, size=(8, 16)):
         self.size = size
-        self.map = [[FLOOR for _ in range(size[1])] for _ in range(size[0])]
+        self.map = [[NOTHING for _ in range(size[1])] for _ in range(size[0])]
 
         self.areas = [Area(0, size[1] - 1, size[0] - 1, 0, index=1)]
+        self.routes = []
 
     def split_area(self, split_count: int):
 
@@ -149,16 +276,28 @@ class DungeonGenerator(object):
             print("-------------c = {0} : end------------".format(c))
 
     def print_map(self):
+        for area in self.areas:
+            if area.has_room():
+                room = area.room
+                for y in range(room.top, room.top + room.height):
+                    for x in range(room.left, room.left + room.width):
+                        self.map[y][x] = room.map[y - room.top][x - room.left]
+
+            if area.has_border():
+                for y in range(area.border.height):
+                    for x in range(area.border.width):
+                        self.map[y + area.border.top][x + area.border.left] = ROUTE_CANDIDATE
+
         self._print_nested_integer_list(self.map)
 
     def print_area(self):
         area_map = [['.' for _ in range(self.size[1])] for _ in range(self.size[0])]
 
         for area in self.areas:
-            t = area.top if not area.border_side == Area.TOP else area.top + 1
-            r = area.right if not area.border_side == Area.RIGHT else area.right - 1
-            b = area.bottom if not area.border_side == Area.BOTTOM else area.bottom - 1
-            l = area.left if not area.border_side == Area.LEFT else area.left + 1
+            t = area.top if not area.border_side == NORTH else area.top + 1
+            r = area.right if not area.border_side == EAST else area.right - 1
+            b = area.bottom if not area.border_side == SOUTH else area.bottom - 1
+            l = area.left if not area.border_side == WEST else area.left + 1
 
             for y in range(t, b + 1):
                 for x in range(l, r + 1):
@@ -166,10 +305,21 @@ class DungeonGenerator(object):
 
         self._print_nested_integer_list(area_map)
 
-    def _print_nested_integer_list(self, nested_integer_list: list):
+    @staticmethod
+    def _print_nested_integer_list(nested_integer_list: list):
         rows = ["".join([str(integer) for integer in row]) for row in nested_integer_list]
-        print_data = "\n".join(rows) + '\n'
+        print_data = "\n".join(rows)
         print(print_data)
+
+    def make_room(self):
+        for area in self.areas:
+            area.make_plain_room()
+
+    def make_route(self):
+        for parent_area, child_area in zip(self.areas, self.areas[1:]):
+            self.routes.append(Route(parent_area, child_area))
+            self.routes[-1].make_route()
+
 
 if __name__ == '__main__':
     # random.seed(510)
@@ -180,6 +330,14 @@ if __name__ == '__main__':
     # dg.print_area()
 
     dg.split_area(10)
+
+    print("------------make room------------")
+    dg.make_room()
+    dg.print_map()
+
+    print("------------make route------------")
+    dg.make_route()
+    dg.print_map()
 
     # for x in range(1000):
     #     try:
