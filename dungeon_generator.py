@@ -172,7 +172,6 @@ class DungeonGenerator(object):
         print_data = "\n".join(rows) + '\n'
         print(print_data)
 
-# FIXME ときどき too small!! と言われる。paddingまわりの設定が怪しい
 if __name__ == '__main__':
     # random.seed(510)
 
