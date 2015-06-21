@@ -134,14 +134,14 @@ class Area(AreaBase):
         self.padding_x = ROOM_PADDING_X
 
         # 分割候補の幅。分割された側に境界（b）が含まれることも考えて、必ず(margin*2+1)^2の空間が残るようにしてある。
-        self.top_split_max = self.top + (self.padding_y + 2)
+        self.top_split_min = self.top + (self.padding_y + 2)
         self.bottom_split_max = self.bottom - (self.padding_y + 2)
-        self.left_split_max = self.left + (self.padding_x + 2)
+        self.left_split_min = self.left + (self.padding_x + 2)
         self.right_split_max = self.right - (self.padding_x + 2)
 
     # TODO hとvで別々なのは単調すぎる。どこかで統一できるはず。
     def split_h(self):
-        border_h = random.randint(self.top_split_max, self.bottom_split_max)
+        border_h = random.randint(self.top_split_min, self.bottom_split_max)
 
         if border_h > (self.top + self.bottom) / 2:
             top_or_bottom = 0
@@ -172,7 +172,7 @@ class Area(AreaBase):
         return new_area
 
     def split_v(self):
-        border_v = random.randint(self.left_split_max, self.right_split_max)
+        border_v = random.randint(self.left_split_min, self.right_split_max)
 
         if border_v > (self.left + self.right) / 2:
             left_or_right = 0
@@ -204,20 +204,20 @@ class Area(AreaBase):
 
     def is_splittable_v(self):
         # 要はrandintが呼び出せるか否かの判定。
-        print("top_split_max : {0}, bottom_split_max : {1}".format(self.top_split_max, self.bottom_split_max))
-        print("left_split_max : {0}, right_split_max : {1}".format(self.left_split_max, self.right_split_max))
+        print("top_split_max : {0}, bottom_split_max : {1}".format(self.top_split_min, self.bottom_split_max))
+        print("left_split_max : {0}, right_split_max : {1}".format(self.left_split_min, self.right_split_max))
 
-        if self.left_split_max > self.right_split_max:
+        if self.left_split_min > self.right_split_max:
             return False
         else:
             return True
 
     def is_splittable_h(self):
         # 要はrandintが呼び出せるか否かの判定。
-        print("top_split_max : {0}, bottom_split_max : {1}".format(self.top_split_max, self.bottom_split_max))
-        print("left_split_max : {0}, right_split_max : {1}".format(self.left_split_max, self.right_split_max))
+        print("top_split_max : {0}, bottom_split_max : {1}".format(self.top_split_min, self.bottom_split_max))
+        print("left_split_max : {0}, right_split_max : {1}".format(self.left_split_min, self.right_split_max))
 
-        if self.top_split_max > self.bottom_split_max:
+        if self.top_split_min > self.bottom_split_max:
             return False
         else:
             return True
