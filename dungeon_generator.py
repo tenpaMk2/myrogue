@@ -12,7 +12,7 @@ ROOM_PADDING_X = 3
 NOTHING = ' '
 WALL = '#'
 FLOOR = '.'
-ROUTE = ','
+ROUTE = 'o'
 ROUTE_CANDIDATE = '\''
 DOOR = '+'
 
@@ -103,12 +103,56 @@ class Route(object):
         parent_door_g_y, parent_door_g_x = self.parent_room.door_position
         child_door_g_y, child_door_g_x = self.child_room.door_position
 
-        print("({0}, {1}) and ({2}, {3})"
+        print("door_position : ({0}, {1}) and ({2}, {3})"
               .format(parent_door_g_y, parent_door_g_x, child_door_g_y, child_door_g_x))
+
+        start_pos = (parent_door_g_y, parent_door_g_x)
+        end_pos = (child_door_g_y, child_door_g_x)
+        if self.parent_area.border_side == NORTH \
+                or self.parent_area.border_side == SOUTH:
+            relay_pos1 = (self.parent_area.border.top, parent_door_g_x)
+            relay_pos2 = (self.parent_area.border.top, child_door_g_x)
+
+        elif self.parent_area.border_side == EAST \
+                or self.parent_area.border_side == WEST:
+            relay_pos1 = (parent_door_g_y, self.parent_area.border.right)
+            relay_pos2 = (child_door_g_y, self.parent_area.border.right)
+        else:
+            raise Exception("border_side must be NORTH~WEST")
+
+        relay_positions = [start_pos, relay_pos1, relay_pos2, end_pos]
+        self.route_positions = self._make_positions_from_relay_positions(relay_positions)
+
+        # start_posとend_posを除外しておく。
+        self.route_positions.pop(0)
+        self.route_positions.pop(-1)
+
+        print("route_positions : {0}".format(self.route_positions))
 
     def make_door(self):
         self.parent_room.make_door(self.parent_area.border_side)
         self.child_room.make_door(FLIPPED_DIRECTION[self.parent_area.border_side])
+
+    @staticmethod
+    def _make_positions_from_relay_positions(relay_positions):
+        print("relay_positions : {0}".format(relay_positions))
+
+        route_positions = []
+
+        for pos1, pos2 in zip(relay_positions, relay_positions[1:]):
+            if pos1[0] == pos2[0]:
+                crese_or_decrease = 1 if pos1[1] < pos2[1] else -1
+
+                for x in range(pos1[1], pos2[1], crese_or_decrease):
+                    route_positions.append((pos1[0], x))
+            else:
+                crese_or_decrease = 1 if pos1[0] < pos2[0] else -1
+                for y in range(pos1[0], pos2[0], crese_or_decrease):
+                    route_positions.append((y, pos1[1]))
+
+        # 最後の座標だけ含まれないので、appendしておく。
+        route_positions.append(relay_positions[-1])
+        return route_positions
 
 
 class ValidArea(AreaBase):
@@ -288,6 +332,10 @@ class DungeonGenerator(object):
                     for x in range(area.border.width):
                         self.map[y + area.border.top][x + area.border.left] = ROUTE_CANDIDATE
 
+        for route in self.routes:
+            for y, x in route.route_positions:
+                self.map[y][x] = ROUTE
+
         self._print_nested_integer_list(self.map)
 
     def print_area(self):
@@ -317,17 +365,20 @@ class DungeonGenerator(object):
 
     def make_route(self):
         for parent_area, child_area in zip(self.areas, self.areas[1:]):
-            self.routes.append(Route(parent_area, child_area))
-            self.routes[-1].make_route()
+            new_route = Route(parent_area, child_area)
+            self.routes.append(new_route)
+            new_route.make_route()
+
+
+
+
 
 
 if __name__ == '__main__':
-    # random.seed(510)
+    # random.seed(51)
+    # dg = DungeonGenerator()
 
     dg = DungeonGenerator((40, 80))
-    # dg = DungeonGenerator()
-    # dg.print_map()
-    # dg.print_area()
 
     dg.split_area(10)
 
