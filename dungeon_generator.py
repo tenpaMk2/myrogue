@@ -169,12 +169,12 @@ class DungeonGenerator(object):
 
     def _print_nested_integer_list(self, nested_integer_list: list):
         rows = ["".join([str(integer) for integer in row]) for row in nested_integer_list]
-        print_data = "".join([row + '\n' for row in rows])
+        print_data = "\n".join(rows) + '\n'
         print(print_data)
 
 # FIXME ときどき too small!! と言われる。paddingまわりの設定が怪しい
 if __name__ == '__main__':
-    # random.seed(51000000000000000000000000000)
+    # random.seed(510)
 
     dg = DungeonGenerator((40, 80))
     # dg = DungeonGenerator()
