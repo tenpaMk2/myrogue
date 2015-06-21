@@ -143,7 +143,6 @@ class DungeonGenerator(object):
                 else:
                     break
 
-            # TODO 面積が大きい方が新たな分割エリアになるようにしよう。
             self.areas.append(new_area)
 
             self.print_area()
