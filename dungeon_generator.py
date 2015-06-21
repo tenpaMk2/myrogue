@@ -9,6 +9,8 @@ FLOOR = 0
 WALL = 1
 ROUTE = 2
 
+ROOM_PADDING = 3
+
 
 class Area(object):
     TOP = 0
@@ -16,7 +18,7 @@ class Area(object):
     BOTTOM = 2
     LEFT = 3
 
-    def __init__(self, index, top: int, right: int, bottom: int, left: int):
+    def __init__(self, top: int, right: int, bottom: int, left: int, index: int=1):
         self.index = index
 
         self.top = top
@@ -25,33 +27,34 @@ class Area(object):
         self.left = left
 
         self.border_side = None
-        self.padding = 1  # min width(height) is padding*2+1
+        self.padding = ROOM_PADDING  # min width(height) is padding*2+1
 
-        self.top_split_max = self.top + self.padding * 2 + 1
-        self.bottom_split_max = self.bottom - self.padding * 2 - 1
-        self.left_split_max = self.left + self.padding * 2 + 1
-        self.right_split_max = self.right - self.padding * 2 - 1
-
-        if self.bottom - self.padding < self.top + self.padding \
-                or self.left + self.padding > self.right - self.padding:
-            raise Exception("too small!!")
+        # 分割候補の幅。分割された側に境界（b）が含まれることも考えて、必ず(padding*2+1)^2の空間が残るようにしてある。
+        self.top_split_max = self.top + (self.padding * 2 + 1)
+        self.bottom_split_max = self.bottom - (self.padding * 2 + 1)
+        self.left_split_max = self.left + (self.padding * 2 + 1)
+        self.right_split_max = self.right - (self.padding * 2 + 1)
 
     # TODO hとvで別々なのは単調すぎる。どこかで統一できるはず。
     def split_h(self):
         border_h = random.randint(self.top_split_max, self.bottom_split_max)
 
-        top_or_bottom = random.randint(0, 1)
+        if border_h > (self.top + self.bottom) / 2:
+            top_or_bottom = 0
+        else:
+            top_or_bottom = 1
+
         if top_or_bottom == 0:
-            new_area = Area(self.index + 1, self.top, self.right, border_h, self.left)
+            new_area = Area(self.top, self.right, border_h - 1, self.left, self.index + 1)
             self.border_side = self.TOP
-            self.top = border_h + 1
+            self.top = border_h
 
             print("split to top : border_h : {0}".format(border_h))
 
         elif top_or_bottom == 1:
-            new_area = Area(self.index + 1, border_h, self.right, self.bottom, self.left)
+            new_area = Area(border_h + 1, self.right, self.bottom, self.left, self.index + 1)
             self.border_side = self.BOTTOM
-            self.bottom = border_h - 1
+            self.bottom = border_h
 
             print("split to bottom : border_h : {0}".format(border_h))
 
@@ -63,21 +66,24 @@ class Area(object):
     def split_v(self):
         border_v = random.randint(self.left_split_max, self.right_split_max)
 
-        left_or_right = random.randint(0, 1)
+        if border_v > (self.left + self.right) / 2:
+            left_or_right = 0
+        else:
+            left_or_right = 1
+
         if left_or_right == 0:
-            new_area = Area(self.index + 1, self.top, border_v, self.bottom, self.left)
+            new_area = Area(self.top, border_v - 1, self.bottom, self.left, self.index + 1)
             self.border_side = self.LEFT
-            self.left = border_v + 1
+            self.left = border_v
 
             print("split to left : border_v : {0}".format(border_v))
 
         elif left_or_right == 1:
-            new_area = Area(self.index + 1, self.top, self.right, self.bottom, border_v)
+            new_area = Area(self.top, self.right, self.bottom, border_v + 1, self.index + 1)
             self.border_side = self.RIGHT
-            self.right = border_v - 1
+            self.right = border_v
 
             print("split to right : border_v : {0}".format(border_v))
-
 
         else:
             raise Exception("split room only left or right!!")
@@ -85,7 +91,7 @@ class Area(object):
         return new_area
 
     def is_splittable_v(self):
-        # 要はrandintが呼び出せるか否か
+        # 要はrandintが呼び出せるか否かの判定。
         print("top_split_max : {0}, bottom_split_max : {1}".format(self.top_split_max, self.bottom_split_max))
         print("left_split_max : {0}, right_split_max : {1}".format(self.left_split_max, self.right_split_max))
 
@@ -95,7 +101,7 @@ class Area(object):
             return True
 
     def is_splittable_h(self):
-        # 要はrandintが呼び出せるか否か
+        # 要はrandintが呼び出せるか否かの判定。
         print("top_split_max : {0}, bottom_split_max : {1}".format(self.top_split_max, self.bottom_split_max))
         print("left_split_max : {0}, right_split_max : {1}".format(self.left_split_max, self.right_split_max))
 
@@ -106,7 +112,7 @@ class Area(object):
 
     def get_area(self):
         # 紛らわしいが面積のこと
-        return (self.bottom - self.top) * (self.right - self.left)
+        return (self.bottom + 1 - self.top) * (self.right + 1 - self.left)
 
 
 class DungeonGenerator(object):
@@ -114,13 +120,19 @@ class DungeonGenerator(object):
         self.size = size
         self.map = [[FLOOR for _ in range(size[1])] for _ in range(size[0])]
 
-        self.areas = [Area(1, 0, size[1] - 1, size[0] - 1, 0)]
+        self.areas = [Area(0, size[1] - 1, size[0] - 1, 0, index=1)]
 
     def split_area(self, split_count: int):
+
+        # 最初にsplitするのが縦か横か決める。
+        first_v_or_h = random.randint(0, 1)
+
+        # 分割開始。小さくなりすぎた場合終了。
         for c in range(split_count):
             print("------------c = {0} : start---------".format(c))
             current_area = self.areas[-1]
-            if c % 2 == 0:
+
+            if (c + first_v_or_h) % 2 == 0:
                 if current_area.is_splittable_v():
                     new_area = current_area.split_v()
                 else:
@@ -132,21 +144,16 @@ class DungeonGenerator(object):
                     break
 
             # TODO 面積が大きい方が新たな分割エリアになるようにしよう。
-            # if new_area.get_area() < current_area.get_area():
-            #     self.areas.insert(-1, new_area)
             self.areas.append(new_area)
 
             self.print_area()
             print("-------------c = {0} : end------------".format(c))
 
     def print_map(self):
-        for y in self.map:
-            for x in y:
-                print(x, end='')
-            print('')
+        self._print_nested_integer_list(self.map)
 
     def print_area(self):
-        area_map = [['b' for _ in range(self.size[1])] for _ in range(self.size[0])]
+        area_map = [['.' for _ in range(self.size[1])] for _ in range(self.size[0])]
 
         for area in self.areas:
             t = area.top if not area.border_side == Area.TOP else area.top + 1
@@ -158,21 +165,23 @@ class DungeonGenerator(object):
                 for x in range(l, r + 1):
                     area_map[y][x] = area.index
 
-        for y in area_map:
-            for idx in y:
-                print(idx, end='')
-            print('')
+        self._print_nested_integer_list(area_map)
+
+    def _print_nested_integer_list(self, nested_integer_list: list):
+        rows = ["".join([str(integer) for integer in row]) for row in nested_integer_list]
+        print_data = "".join([row + '\n' for row in rows])
+        print(print_data)
 
 # FIXME ときどき too small!! と言われる。paddingまわりの設定が怪しい
 if __name__ == '__main__':
-    # random.seed(3)
+    # random.seed(51000000000000000000000000000)
 
-    dg = DungeonGenerator((60, 80))
+    dg = DungeonGenerator((40, 80))
+    # dg = DungeonGenerator()
     # dg.print_map()
     # dg.print_area()
 
     dg.split_area(10)
-
 
     # for x in range(1000):
     #     try:
