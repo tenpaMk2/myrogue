@@ -5,7 +5,6 @@ __author__ = 'tenpa'
 import random
 from abc import ABCMeta, abstractmethod
 
-ROOM_MARGIN = 3
 ROOM_PADDING_Y = 3
 ROOM_PADDING_X = 3
 
@@ -235,7 +234,6 @@ class Area(AreaBase):
         self.room = None
 
         self.border_side = NODIRECTION
-        self.margin = ROOM_MARGIN  # min width(height) is padding*2+1
         self.padding_y = ROOM_PADDING_Y
         self.padding_x = ROOM_PADDING_X
 
