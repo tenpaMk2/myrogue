@@ -170,7 +170,7 @@ while 1:
     clock.tick(10)
 
     ballrect = ballrect.move(speed)
-    if ballrect.left < 0 or ballrect.right > width:
+    if ballrect.top < 0 or ballrect.bottom > width:
         speed[0] = -speed[0]
     if ballrect.top < 0 or ballrect.bottom > height:
         speed[1] = -speed[1]

@@ -163,6 +163,68 @@ class Border(AreaBase):
     pass
 
 
+class BorderV(Border):
+    @property
+    def right(self):
+        if self.__is_same_left_and_right():
+            return self._right
+        else:
+            raise Exception("This Border object's left-right is different!!")
+
+    @right.setter
+    def right(self, value: int):
+        self.__set_left_and_right(value)
+
+    @property
+    def left(self):
+        if self.__is_same_left_and_right():
+            return self._left
+        else:
+            raise Exception("This Border object's left-right is different!!")
+
+    @left.setter
+    def left(self, value: int):
+        self.__set_left_and_right(value)
+
+    def __set_left_and_right(self, value):
+        self._right = value
+        self._left = value
+
+    def __is_same_left_and_right(self):
+        return True if self._right == self._left else False
+
+
+class BorderH(Border):
+    @property
+    def bottom(self):
+        if self.__is_same_top_and_bottom():
+            return self._bottom
+        else:
+            raise Exception("This Border object's left-right is different!!")
+
+    @bottom.setter
+    def bottom(self, value: int):
+        self.__set_top_and_bottom(value)
+
+    @property
+    def top(self):
+        if self.__is_same_top_and_bottom():
+            return self._top
+        else:
+            raise Exception("This Border object's left-right is different!!")
+
+    @top.setter
+    def top(self, value: int):
+        self.__set_top_and_bottom(value)
+
+    def __set_top_and_bottom(self, value):
+        self._top = value
+        self._bottom = value
+
+    def __is_same_top_and_bottom(self):
+        return True if self._top == self._bottom else False
+
+
 class Area(AreaBase):
     def __init__(self, top: int, right: int, bottom: int, left: int, index: int=1):
         super(Area, self).__init__(top, right, bottom, left)
@@ -196,7 +258,7 @@ class Area(AreaBase):
             new_area = Area(self.top, self.right, border_h - 1, self.left, self.index + 1)
             self.border_side = NORTH
             self.top = border_h
-            self.border = Border(self.top, self.right, self.top, self.left)
+            self.border = BorderH(self.top, self.right, self.top, self.left)
             self.valid_area.top = border_h + 1
 
             print("split to top : border_h : {0}".format(border_h))
@@ -205,7 +267,7 @@ class Area(AreaBase):
             new_area = Area(border_h + 1, self.right, self.bottom, self.left, self.index + 1)
             self.border_side = SOUTH
             self.bottom = border_h
-            self.border = Border(self.bottom, self.right, self.bottom, self.left)
+            self.border = BorderH(self.bottom, self.right, self.bottom, self.left)
             self.valid_area.bottom = border_h - 1
 
             print("split to bottom : border_h : {0}".format(border_h))
@@ -227,7 +289,7 @@ class Area(AreaBase):
             new_area = Area(self.top, border_v - 1, self.bottom, self.left, self.index + 1)
             self.border_side = WEST
             self.left = border_v
-            self.border = Border(self.top, self.left, self.bottom, self.left)
+            self.border = BorderV(self.top, self.left, self.bottom, self.left)
             self.valid_area.left = border_v + 1
 
             print("split to left : border_v : {0}".format(border_v))
@@ -236,7 +298,7 @@ class Area(AreaBase):
             new_area = Area(self.top, self.right, self.bottom, border_v + 1, self.index + 1)
             self.border_side = EAST
             self.right = border_v
-            self.border = Border(self.top, self.right, self.bottom, self.right)
+            self.border = BorderV(self.top, self.right, self.bottom, self.right)
             self.valid_area.right = border_v - 1
 
             print("split to right : border_v : {0}".format(border_v))
@@ -368,10 +430,6 @@ class DungeonGenerator(object):
             new_route = Route(parent_area, child_area)
             self.routes.append(new_route)
             new_route.make_route()
-
-
-
-
 
 
 if __name__ == '__main__':
