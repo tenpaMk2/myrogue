@@ -149,38 +149,64 @@ metaclasstesuto = MetaclassTesuto()
 metaclasstesuto.metaclass_ga_arudake()
 
 print("-----pygame-----------")
-import sys, pygame
+# import sys, pygame
+#
+# pygame.init()
+# clock = pygame.time.Clock()
+#
+# size = width, height = 320, 240
+# speed = [2, 2]
+# black = 0, 0, 0
+#
+# screen = pygame.display.set_mode(size)
+#
+# ball = pygame.image.load("burn.jpg")
+# ballrect = ball.get_rect()
+# ballrect2 = ballrect.move(speed)
+#
+# while 1:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT: sys.exit()
+#     clock.tick(10)
+#
+#     ballrect = ballrect.move(speed)
+#     if ballrect.top < 0 or ballrect.bottom > width:
+#         speed[0] = -speed[0]
+#     if ballrect.top < 0 or ballrect.bottom > height:
+#         speed[1] = -speed[1]
+#
+#     screen.fill(black)
+#     screen.blit(ball, ballrect)
+#     pygame.display.flip()
+#
+#     # screen.fill(black)
+#     # screen.blit(ball, ballrect2)
+#     # pygame.display.flip()
+#
+# print("終了")
 
-pygame.init()
-clock = pygame.time.Clock()
+print("---------NetworkX-------------")
+import networkx as nx
 
-size = width, height = 320, 240
-speed = [2, 2]
-black = 0, 0, 0
+G = nx.Graph()
+G.add_node("spam")
+G.add_edge(1, 2)
+print(G.nodes())
+print(G.edges())
 
-screen = pygame.display.set_mode(size)
+print("---------A* NetworkX-------------")
+G = nx.path_graph(5)
+print(nx.astar_path(G, 0, 4))
+G = nx.grid_graph(dim=[3, 3])
+print(G)
 
-ball = pygame.image.load("burn.jpg")
-ballrect = ball.get_rect()
-ballrect2 = ballrect.move(speed)
 
-while 1:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT: sys.exit()
-    clock.tick(10)
+def dist(a, b):
+    (x1, y1) = a
+    (x2, y2) = b
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
-    ballrect = ballrect.move(speed)
-    if ballrect.top < 0 or ballrect.bottom > width:
-        speed[0] = -speed[0]
-    if ballrect.top < 0 or ballrect.bottom > height:
-        speed[1] = -speed[1]
+print(nx.astar_path(G, (0,0), (2,2), dist))
 
-    screen.fill(black)
-    screen.blit(ball, ballrect)
-    pygame.display.flip()
-
-    # screen.fill(black)
-    # screen.blit(ball, ballrect2)
-    # pygame.display.flip()
-
-print("終了")
+GG = nx.Graph(G)
+print(GG.edge)
