@@ -31,30 +31,38 @@ class Node(object):
     h*(n)をnからgoalまでの直線距離と仮定する。
 
     f*(n) = g*(n) + h*(n)
+
+    :type start: (int, int)
+    :type goal: (int, int)
+
+    :type owner_list: NodeList
+    :type parent_node: Node
     """
     start = None  # start位置(x,y)
     goal = None  # goal位置(x,y)
 
-    def __init__(self, x, y):
+    def __init__(self, x: int, y: int):
         self.pos = (x, y)
         self.hs = ((x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2) ** 0.5
         # self.hs = (x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2
-        self.hs = abs(x - self.goal[0]) + abs(y - self.goal[1])
+        # self.hs = abs(x - self.goal[0]) + abs(y - self.goal[1])
         self.fs = 0
         self.owner_list = None
         self.parent_node = None
 
-    def is_goal(self):
+    def is_goal(self) -> bool:
         return self.goal == self.pos
 
 
 class NodeList(list):
-    def find(self, x, y):
-        l = [t for t in self if t.pos == (x, y)]
-        return l[0] if l != [] else None
+    def find(self, x: int, y: int) -> Node:
+        nodes = [t for t in self if t.pos == (x, y)]
+        # listが空ならFalseであることを利用したpythonicな書き方。
+        return nodes[0] if nodes else None
 
-    def remove(self, node):
-        del self[self.index(node)]
+        # removeはlistが持ってるメソッドで十分。よってコメントアウト
+        # def remove(self, node):
+        #     del self[self.index(node)]
 
 
 def print_map(end_node):
@@ -70,6 +78,41 @@ def print_map(end_node):
 
     print("n's fs : {0}".format(m.fs))
     print("\n".join(["".join(x) for x in map_buffer]))
+
+
+class SearchingMap(object):
+    def __init__(self, matrix_map: list):
+        self.height = len(matrix_map)
+        self.width = max([len(row) for row in matrix_map])
+
+        self.parsed_map = self._make_empty_map(self.height, self.width)
+        self.obstacles_map = self._make_empty_map(self.height, self.width)
+
+        for y, row in enumerate(matrix_map):
+            for x, chara in enumerate(row):
+                if chara == '#':
+                    self.parsed_map[y][x] = '#'
+                    self.obstacles_map[y][x] = True
+                elif chara == 'S':
+                    self.parsed_map[y][x] = 'S'
+                    self.start_pos = (y, x)
+                elif chara == 'G':
+                    self.parsed_map[y][x] = 'G'
+                    self.goal_pos = (y, x)
+                elif chara == ' ':
+                    self.parsed_map[y][x] = ' '
+                    self.obstacles_map[y][x] = False
+                else:
+                    raise Exception("invalid map object!!!!")
+
+    @staticmethod
+    def _make_empty_map(height: int, width: int, padding_type=None):
+        return [[padding_type for _ in range(width)] for _ in range(height)]
+
+
+class Astar(object):
+    def __init__(self, searching_map: SearchingMap):
+        self.searching_map = searching_map
 
 # スタート位置とゴール位置を設定
 for (i, x) in enumerate(map_data):
