@@ -161,23 +161,24 @@ class Astar(object):
             for v in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 y = n.pos[0] + v[0]
                 x = n.pos[1] + v[1]
-                print("(y, x) : {0}".format((y, x)))
+                dist_from_n = ((n.pos[0] - y) ** 2 + (n.pos[1] - x) ** 2) ** 0.5
+                print("(y, x) : {0} : dist_from_n : {1}".format((y, x), dist_from_n))
 
                 # マップが範囲外または壁(#)の場合はcontinue
-                if (self.searching_map.is_outside_of_map(y, x)
-                    or self.searching_map.is_obstacle_at(y, x)):
+                if self.searching_map.is_outside_of_map(y, x) \
+                        or self.searching_map.is_obstacle_at(y, x):
                     print("outside map or at obstacle.")
                     continue
 
                 # 移動先のノードがOpen,Closeのどちらのリストに
                 # 格納されているか、または新規ノードなのかを調べる
                 m = self.open_list.find(y, x)
-                dist = ((n.pos[0] - y) ** 2 + (n.pos[1] - x) ** 2) ** 0.5
+
                 if m:
                     # 移動先のノードがOpenリストに格納されていた場合、
                     # より小さいf*ならばノードmのf*を更新し、親を書き換え
-                    if m.fs > n_gs + m.hs + dist:
-                        m.fs = n_gs + m.hs + dist
+                    if m.fs > n_gs + m.hs + dist_from_n:
+                        m.fs = n_gs + m.hs + dist_from_n
                         m.parent_node = n
 
                         print("m is in OpenList")
@@ -187,19 +188,19 @@ class Astar(object):
                         # 移動先のノードがCloseリストに格納されていた場合、
                         # より小さいf*ならばノードmのf*を更新し、親を書き換え
                         # かつ、Openリストに移動する
-                        if m.fs > n_gs + m.hs + dist:
-                            m.fs = n_gs + m.hs + dist
+                        if m.fs > n_gs + m.hs + dist_from_n:
+                            m.fs = n_gs + m.hs + dist_from_n
                             m.parent_node = n
                             self.open_list.append(m)
                             self.close_list.remove(m)
 
                             print("m is in CloseList")
                         else:
-                            print("m <= n_gs + m.hs + dist")
+                            print("m <= n_gs + m.hs + dist_from_n")
                     else:
                         # 新規ノードならばOpenリストにノードに追加
                         m = Node(y, x)
-                        m.fs = n_gs + m.hs + dist
+                        m.fs = m.hs + (n_gs + dist_from_n)
                         m.parent_node = n
                         self.open_list.append(m)
 
@@ -211,7 +212,7 @@ class Astar(object):
         map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
 
         while True:
-            if n.parent_node == None:
+            if n.parent_node is None:
                 break
             map_buffer[n.pos[0]][n.pos[1]] = '+'
             n = n.parent_node
