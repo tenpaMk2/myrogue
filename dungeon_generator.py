@@ -5,8 +5,10 @@ __author__ = 'tenpa'
 import random
 from abc import ABCMeta, abstractmethod
 
+# TODO クラス変数とインスタンス変数を使い分けよう。特にmodelの方で、viewerやMap_modelなどは変わらないので、Factory系はクラス変数にこいつらをおさめた方がいいかも?
+
 ROOM_PADDING_Y = 3
-ROOM_PADDING_X = 3
+ROOM_PADDING_X = 5
 
 NOTHING = ' '
 WALL = '#'
@@ -48,7 +50,7 @@ class Room(AreaBase):
     def __init__(self, top: int, right: int, bottom: int, left: int):
         super(Room, self).__init__(top, right, bottom, left)
 
-        self.door_position = (None, None)
+        self.door_positions = []
 
         self.map = [[None for _ in range(self.width)] for _ in range(self.height)]
 
@@ -82,7 +84,7 @@ class Room(AreaBase):
         else:
             raise Exception("edge_select must be NORTH~WEST")
 
-        self.door_position = (door_g_y, door_g_x)
+        self.door_positions.append((door_g_y, door_g_x))
         self.map[door_g_y - self.top][door_g_x - self.left] = DOOR
 
 
@@ -99,8 +101,8 @@ class Route(object):
     def make_route(self):
         self.make_door()
 
-        parent_door_g_y, parent_door_g_x = self.parent_room.door_position
-        child_door_g_y, child_door_g_x = self.child_room.door_position
+        parent_door_g_y, parent_door_g_x = self.parent_room.door_positions[0]
+        child_door_g_y, child_door_g_x = self.child_room.door_positions[0]
 
         print("door_position : ({0}, {1}) and ({2}, {3})"
               .format(parent_door_g_y, parent_door_g_x, child_door_g_y, child_door_g_x))

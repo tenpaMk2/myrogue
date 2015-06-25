@@ -2,22 +2,10 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
-map_data = [
-    '######################################',
-    '#G  #     #     #         #          #',
-    '#   #  #  #  #  #         #    #### S#',
-    '#      #     #  #   ####  #    #  ####',
-    '## ###############  #     #    #     #',
-    '#                #  #     #          #',
-    '#        ###     #  #     #########  #',
-    '#  ##    #    ####  #     #      ##  #',
-    '#   #    #          #     #  #   #   #',
-    '#   ###  #          #        #   #   #',
-    '#        #          #        #       #',
-    '######################################',
-]
-map_width = max([len(x) for x in map_data])
-map_height = len(map_data)
+
+def print_nested_list(nested_list: list):
+    formatted_str = "\n".join(["".join(row) for row in nested_list])
+    print(formatted_str)
 
 
 class Node(object):
@@ -41,8 +29,8 @@ class Node(object):
     start = None  # start位置(x,y)
     goal = None  # goal位置(x,y)
 
-    def __init__(self, x: int, y: int):
-        self.pos = (x, y)
+    def __init__(self, y: int, x: int):
+        self.pos = (y, x)
         self.hs = ((x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2) ** 0.5
         # self.hs = (x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2
         # self.hs = abs(x - self.goal[0]) + abs(y - self.goal[1])
@@ -55,8 +43,8 @@ class Node(object):
 
 
 class NodeList(list):
-    def find(self, x: int, y: int) -> Node:
-        nodes = [t for t in self if t.pos == (x, y)]
+    def find(self, y: int, x: int) -> Node:
+        nodes = [t for t in self if t.pos == (y, x)]
         # listが空ならFalseであることを利用したpythonicな書き方。
         return nodes[0] if nodes else None
 
@@ -65,28 +53,24 @@ class NodeList(list):
         #     del self[self.index(node)]
 
 
-def print_map(end_node):
-    # endノードから親を辿っていくと、最短ルートを示す
-    n = end_node.parent_node
-    map_buffer = [[x for x in line] for line in map_data]
-
-    while True:
-        if n.parent_node == None:
-            break
-        map_buffer[n.pos[1]][n.pos[0]] = '+'
-        n = n.parent_node
-
-    print("n's fs : {0}".format(m.fs))
-    print("\n".join(["".join(x) for x in map_buffer]))
-
-
 class SearchingMap(object):
+    """
+    :type parsed_map: list
+    :type obstacles_map: list
+
+    :type start_pos: (int, int)
+    :type goal_pos: (int, int)
+    """
+
     def __init__(self, matrix_map: list):
         self.height = len(matrix_map)
         self.width = max([len(row) for row in matrix_map])
 
         self.parsed_map = self._make_empty_map(self.height, self.width)
         self.obstacles_map = self._make_empty_map(self.height, self.width)
+
+        self.start_pos = None
+        self.goal_pos = None
 
         for y, row in enumerate(matrix_map):
             for x, chara in enumerate(row):
@@ -105,94 +89,174 @@ class SearchingMap(object):
                 else:
                     raise Exception("invalid map object!!!!")
 
+        # TODO これいるかなあ? 別の場所でやった方が良い気がする。
+        Node.start = self.start_pos
+        Node.goal = self.goal_pos
+
+    def is_obstacle_at(self, y: int, x: int):
+        return self.obstacles_map[y][x]
+
+    def is_outside_of_map(self, y: int, x: int):
+        return False if (0 < y < self.height and 0 < x < self.width) else False
+
+    def print_parsed_map(self):
+        print_nested_list(self.parsed_map)
+
+    def print_obstacles_map(self):
+        parsed_obstacles_map = self._make_empty_map(self.height, self.width)
+        for y, row in enumerate(self.obstacles_map):
+            for x, element in enumerate(row):
+                if element:
+                    parsed_obstacles_map[y][x] = '1'
+                else:
+                    parsed_obstacles_map[y][x] = '0'
+
+        print_nested_list(parsed_obstacles_map)
+
     @staticmethod
     def _make_empty_map(height: int, width: int, padding_type=None):
         return [[padding_type for _ in range(width)] for _ in range(height)]
 
+    @staticmethod
+    def return_deep_copy_of_nested_list(nested_list):
+        return [[chara for chara in row] for row in nested_list]
+
 
 class Astar(object):
-    def __init__(self, searching_map: SearchingMap):
+    def __init__(self, searching_map: "SearchingMap"):
         self.searching_map = searching_map
+        self.open_list = NodeList()
+        self.close_list = NodeList()
 
-# スタート位置とゴール位置を設定
-for (i, x) in enumerate(map_data):
-    if 'S' in x:
-        Node.start = (x.index('S'), i)
-    elif 'G' in x:
-        Node.goal = (x.index('G'), i)
+        self.start_node = Node(*Node.start)
+        self.start_node.fs = self.start_node.hs
 
-# OpenリストとCloseリストを設定
-open_list = NodeList()
-close_list = NodeList()
-start_node = Node(*Node.start)
-start_node.fs = start_node.hs
-open_list.append(start_node)
+        self.open_list.append(self.start_node)
 
-while True:
-    # Openリストが空になったら解なし
-    if open_list == []:
-        print("There is no route until reaching a goal.")
-        exit(1)
+        while True:
+            print("----------------------------------------")
+            self.print_open_close_list()
 
-    # Openリストからf*が最少のノードnを取得
-    n = min(open_list, key=lambda x: x.fs)
-    open_list.remove(n)
-    close_list.append(n)
+            # Openリストが空になったら解なし
+            if not self.open_list:
+                raise Exception("There is no route until reaching a goal.")
 
-    # 最小ノードがゴールだったら終了
-    if n.is_goal():
-        end_node = n
-        break
+            # Openリストからf*が最少のノードnを取得
+            n = min(self.open_list, key=lambda node: node.fs)
+            self.open_list.remove(n)
+            self.close_list.append(n)
+            print("n : {0} : fs : {1}".format(n.pos, n.fs))
 
-    # f*() = g*() + h*() -> g*() = f*() - h*()
-    n_gs = n.fs - n.hs
+            # 最小ノードがゴールだったら終了
+            if n.is_goal():
+                print("goal!")
+                self.end_node = n
+                break
 
-    # ノードnの移動可能方向のノードを調べる
-    for v in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        x = n.pos[0] + v[0]
-        y = n.pos[1] + v[1]
+            # f*() = g*() + h*() -> g*() = f*() - h*()
+            n_gs = n.fs - n.hs
+            print("n_gs : {0}".format(n_gs))
 
-        # マップが範囲外または壁(#)の場合はcontinue
-        if not (0 < y < map_height and
-                            0 < x < map_width and
-                        map_data[y][x] != '#'):
-            continue
+            # ノードnの移動可能方向のノードを調べる
+            for v in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                y = n.pos[0] + v[0]
+                x = n.pos[1] + v[1]
+                print("(y, x) : {0}".format((y, x)))
 
-        # 移動先のノードがOpen,Closeのどちらのリストに
-        # 格納されているか、または新規ノードなのかを調べる
-        m = open_list.find(x, y)
-        dist = ((n.pos[0] - x) ** 2 + (n.pos[1] - y) ** 2) ** 0.5
-        if m:
-            # 移動先のノードがOpenリストに格納されていた場合、
-            # より小さいf*ならばノードmのf*を更新し、親を書き換え
-            if m.fs > n_gs + m.hs + dist:
-                m.fs = n_gs + m.hs + dist
-                m.parent_node = n
+                # マップが範囲外または壁(#)の場合はcontinue
+                if (self.searching_map.is_outside_of_map(y, x)
+                    or self.searching_map.is_obstacle_at(y, x)):
+                    print("outside map or at obstacle.")
+                    continue
 
-                print("m is in OpenList")
-                print_map(m)
-        else:
-            m = close_list.find(x, y)
-            if m:
-                # 移動先のノードがCloseリストに格納されていた場合、
-                # より小さいf*ならばノードmのf*を更新し、親を書き換え
-                # かつ、Openリストに移動する
-                if m.fs > n_gs + m.hs + dist:
-                    m.fs = n_gs + m.hs + dist
-                    m.parent_node = n
-                    open_list.append(m)
-                    close_list.remove(m)
+                # 移動先のノードがOpen,Closeのどちらのリストに
+                # 格納されているか、または新規ノードなのかを調べる
+                m = self.open_list.find(y, x)
+                dist = ((n.pos[0] - y) ** 2 + (n.pos[1] - x) ** 2) ** 0.5
+                if m:
+                    # 移動先のノードがOpenリストに格納されていた場合、
+                    # より小さいf*ならばノードmのf*を更新し、親を書き換え
+                    if m.fs > n_gs + m.hs + dist:
+                        m.fs = n_gs + m.hs + dist
+                        m.parent_node = n
 
-                    print("m is in CloseList")
-                    print_map(m)
-            else:
-                # 新規ノードならばOpenリストにノードに追加
-                m = Node(x, y)
-                m.fs = n_gs + m.hs + dist
-                m.parent_node = n
-                open_list.append(m)
+                        print("m is in OpenList")
+                else:
+                    m = self.close_list.find(y, x)
+                    if m:
+                        # 移動先のノードがCloseリストに格納されていた場合、
+                        # より小さいf*ならばノードmのf*を更新し、親を書き換え
+                        # かつ、Openリストに移動する
+                        if m.fs > n_gs + m.hs + dist:
+                            m.fs = n_gs + m.hs + dist
+                            m.parent_node = n
+                            self.open_list.append(m)
+                            self.close_list.remove(m)
 
-                print("m is New node")
-                print_map(m)
+                            print("m is in CloseList")
+                        else:
+                            print("m <= n_gs + m.hs + dist")
+                    else:
+                        # 新規ノードならばOpenリストにノードに追加
+                        m = Node(y, x)
+                        m.fs = n_gs + m.hs + dist
+                        m.parent_node = n
+                        self.open_list.append(m)
 
-print_map(end_node)
+                        print("m is New node")
+
+    def print_map(self, end_node: "Node"):
+        # endノードから親を辿っていくと、最短ルートを示す
+        n = end_node.parent_node
+        map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
+
+        while True:
+            if n.parent_node == None:
+                break
+            map_buffer[n.pos[0]][n.pos[1]] = '+'
+            n = n.parent_node
+
+        print("n's fs : {0}".format(n.fs))
+        print_nested_list(map_buffer)
+
+    def print_open_close_list(self):
+        map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
+
+        for open_node in self.open_list:
+            y = open_node.pos[0]
+            x = open_node.pos[1]
+            map_buffer[y][x] = 'o'
+
+        for close_node in self.close_list:
+            y = close_node.pos[0]
+            x = close_node.pos[1]
+            map_buffer[y][x] = 'c'
+
+        print_nested_list(map_buffer)
+
+
+if __name__ == '__main__':
+    map_data = [
+        '######################################',
+        '#G  #     #     #         #          #',
+        '#   #  #  #  #  #         #    #### S#',
+        '#      #     #  #   ####  #    #  ####',
+        '## ###############  #     #    #     #',
+        '#                #  #     #          #',
+        '#        ###     #  #     #########  #',
+        '#  ##    #    ####  #     #      ##  #',
+        '#   #    #          #     #  #   #   #',
+        '#   ###  #          #        #   #   #',
+        '#        #          #        #       #',
+        '######################################',
+    ]
+
+    s_map = SearchingMap(map_data)
+    print("print parsed_map")
+    s_map.print_parsed_map()
+    print("print obstacles_map")
+    s_map.print_obstacles_map()
+
+    astar = Astar(s_map)
+
+    astar.print_map(astar.end_node)
