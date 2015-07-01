@@ -153,7 +153,7 @@ class Astar(object):
         self.open_list = NodeList()
         self.close_list = NodeList()
 
-        self.start_node = Node(*Node.start_pos)
+        self.start_node = Node(*Node.start_pos, gs=0)
         self.start_node.fs = self.start_node.hs
         self.end_node = None
 
@@ -175,9 +175,6 @@ class Astar(object):
                 self.end_node = current_node
                 break
 
-            # f*() = g*() + h*() -> g*() = f*() - h*()
-            n_gs = current_node.fs - current_node.hs
-            print("n_gs : {0}".format(n_gs))
 
             # ノードnの移動可能方向のノードを調べる
             for v in ((1, 0), (-1, 0), (0, 1), (0, -1)):
@@ -194,39 +191,49 @@ class Astar(object):
 
                 # 移動先のノードがOpen,Closeのどちらのリストに
                 # 格納されているか、または新規ノードなのかを調べる
-                selecting_node = self.open_list.find(y, x)
+                selecting_open_node = self.open_list.find(y, x)
 
-                if selecting_node:
+                if selecting_open_node:
                     # 移動先のノードがOpenリストに格納されていた場合、
                     # より小さいf*ならばノードmのf*を更新し、親を書き換え
-                    if selecting_node.fs > n_gs + selecting_node.hs + dist_from_n:
-                        selecting_node.fs = n_gs + selecting_node.hs + dist_from_n
-                        selecting_node.parent_node = current_node
+                    new_gs = current_node.gs + dist_from_n
+                    new_fs = selecting_open_node.hs + new_gs
+                    if selecting_open_node.fs > new_fs:
+                        selecting_open_node.gs = new_gs
+                        selecting_open_node.fs = new_fs
+                        selecting_open_node.parent_node = current_node
 
-                        print("selecting_node is in OpenList")
+                        print("selecting_open_node is in OpenList")
                 else:
-                    selecting_node = self.close_list.find(y, x)
-                    if selecting_node:
+                    # 移動先のノードがOpenリストに無かった場合。
+
+                    selecting_close_node = self.close_list.find(y, x)
+                    if selecting_close_node:
                         # 移動先のノードがCloseリストに格納されていた場合、
                         # より小さいf*ならばノードmのf*を更新し、親を書き換え
                         # かつ、Openリストに移動する
-                        if selecting_node.fs > n_gs + selecting_node.hs + dist_from_n:
-                            selecting_node.fs = n_gs + selecting_node.hs + dist_from_n
-                            selecting_node.parent_node = current_node
-                            self.open_list.append(selecting_node)
-                            self.close_list.remove(selecting_node)
 
-                            print("selecting_node is in CloseList")
+                        new_gs = current_node.gs + dist_from_n
+                        new_fs = selecting_close_node.hs + new_gs
+                        if selecting_close_node.fs > new_fs:
+                            selecting_close_node.gs = new_gs
+                            selecting_close_node.fs = new_fs
+                            selecting_close_node.parent_node = current_node
+
+                            self.close_list.remove(selecting_close_node)
+                            self.open_list.append(selecting_close_node)
+
+                            print("selecting_close_node is in CloseList")
                         else:
-                            print("selecting_node <= n_gs + selecting_node.hs + dist_from_n")
+                            print("selecting_close_node better than new.")
                     else:
                         # 新規ノードならばOpenリストにノードに追加
-                        selecting_node = Node(y, x)
-                        selecting_node.fs = selecting_node.hs + (n_gs + dist_from_n)
-                        selecting_node.parent_node = current_node
-                        self.open_list.append(selecting_node)
+                        selecting_close_node = Node(y, x, current_node.gs + dist_from_n)
+                        selecting_close_node.fs = selecting_close_node.hs + selecting_close_node.gs
+                        selecting_close_node.parent_node = current_node
+                        self.open_list.append(selecting_close_node)
 
-                        print("selecting_node is New node")
+                        print("selecting_close_node is New node")
 
             # 周りのノードを全てOpenし終えたので、クローズする。
             self.open_list.remove(current_node)
