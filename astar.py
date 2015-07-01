@@ -35,19 +35,19 @@ class Node(object):
     f*(n) = g*(n) + h*(n)
     :type gs: float
 
-    :type start: (int, int)
-    :type goal: (int, int)
+    :type start_pos: (int, int)
+    :type goal_pos: (int, int)
 
     :type owner_list: NodeList
     :type parent_node: Node
     """
-    start = None  # start位置(x,y)
-    goal = None  # goal位置(x,y)
+    start_pos = None  # start位置(x,y)
+    goal_pos = None  # goal位置(x,y)
 
     def __init__(self, y: int, x: int, gs: float=0):
         self.pos = (y, x)
         self.gs = gs
-        self.hs = ((x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2) ** 0.5
+        self.hs = ((x - self.goal_pos[0]) ** 2 + (y - self.goal_pos[1]) ** 2) ** 0.5
         # self.hs = (x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2
         # self.hs = abs(x - self.goal[0]) + abs(y - self.goal[1])
         self.fs = 0
@@ -55,7 +55,7 @@ class Node(object):
         self.parent_node = None
 
     def is_goal(self) -> bool:
-        return self.goal == self.pos
+        return self.goal_pos == self.pos
 
 
 class NodeList(list):
@@ -112,8 +112,8 @@ class SearchingMap(object):
                     raise Exception("invalid map object!!!!")
 
         # TODO これいるかなあ? 別の場所でやった方が良い気がする。
-        Node.start = self.start_pos
-        Node.goal = self.goal_pos
+        Node.start_pos = self.start_pos
+        Node.goal_pos = self.goal_pos
 
     def is_obstacle_at(self, y: int, x: int):
         return self.obstacles_map[y][x]
@@ -150,7 +150,7 @@ class Astar(object):
         self.open_list = NodeList()
         self.close_list = NodeList()
 
-        self.start_node = Node(*Node.start)
+        self.start_node = Node(*Node.start_pos)
         self.start_node.fs = self.start_node.hs
         self.end_node = None
 
