@@ -50,9 +50,17 @@ class Node(object):
         self.hs = ((x - self.goal_pos[0]) ** 2 + (y - self.goal_pos[1]) ** 2) ** 0.5
         # self.hs = (x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2
         # self.hs = abs(x - self.goal[0]) + abs(y - self.goal[1])
-        self.fs = 0
         self.owner_list = None
         self.parent_node = None
+
+    # Node.fsはプロパティで表現することに。
+    @property
+    def fs(self):
+        return self.gs + self.hs
+
+    @fs.setter
+    def fs(self, value):
+        raise Exception("fs is not settable")
 
     def is_goal(self) -> bool:
         return self.goal_pos == self.pos
@@ -154,7 +162,6 @@ class Astar(object):
         self.close_list = NodeList()
 
         self.start_node = Node(*Node.start_pos, gs=0)
-        self.start_node.fs = self.start_node.hs
         self.end_node = None
 
         # スタート地点のノードをオープンリストに加える
@@ -174,7 +181,6 @@ class Astar(object):
                 print("goal!")
                 self.end_node = current_node
                 break
-
 
             # ノードnの移動可能方向のノードを調べる
             for v in ((1, 0), (-1, 0), (0, 1), (0, -1)):
@@ -200,7 +206,6 @@ class Astar(object):
                     new_fs = selecting_open_node.hs + new_gs
                     if selecting_open_node.fs > new_fs:
                         selecting_open_node.gs = new_gs
-                        selecting_open_node.fs = new_fs
                         selecting_open_node.parent_node = current_node
 
                         print("selecting_open_node is in OpenList")
@@ -217,7 +222,6 @@ class Astar(object):
                         new_fs = selecting_close_node.hs + new_gs
                         if selecting_close_node.fs > new_fs:
                             selecting_close_node.gs = new_gs
-                            selecting_close_node.fs = new_fs
                             selecting_close_node.parent_node = current_node
 
                             self.close_list.remove(selecting_close_node)
@@ -229,7 +233,6 @@ class Astar(object):
                     else:
                         # 新規ノードならばOpenリストにノードに追加
                         selecting_close_node = Node(y, x, current_node.gs + dist_from_n)
-                        selecting_close_node.fs = selecting_close_node.hs + selecting_close_node.gs
                         selecting_close_node.parent_node = current_node
                         self.open_list.append(selecting_close_node)
 
