@@ -2,6 +2,20 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+import enum
+
+
+@enum.unique
+class DIRECTION(enum.Enum):
+    north = 0
+    northeast = 1
+    east = 2
+    southeast = 3
+    south = 4
+    southwest = 5
+    west = 6
+    northwest = 7
+
 
 def print_nested_list(nested_list: list):
     formatted_str = "\n".join(["".join(row) for row in nested_list])
@@ -19,6 +33,7 @@ class Node(object):
     h*(n)をnからgoalまでの直線距離と仮定する。
 
     f*(n) = g*(n) + h*(n)
+    :type gs: float
 
     :type start: (int, int)
     :type goal: (int, int)
@@ -29,8 +44,9 @@ class Node(object):
     start = None  # start位置(x,y)
     goal = None  # goal位置(x,y)
 
-    def __init__(self, y: int, x: int):
+    def __init__(self, y: int, x: int, gs: float=0):
         self.pos = (y, x)
+        self.gs = gs
         self.hs = ((x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2) ** 0.5
         # self.hs = (x - self.goal[0]) ** 2 + (y - self.goal[1]) ** 2
         # self.hs = abs(x - self.goal[0]) + abs(y - self.goal[1])
@@ -130,16 +146,15 @@ class Astar(object):
 
         self.start_node = Node(*Node.start)
         self.start_node.fs = self.start_node.hs
+        self.end_node = None
 
+        # スタート地点のノードをオープンリストに加える
         self.open_list.append(self.start_node)
 
-        while True:
+        # オープンリストが空になるまで続ける
+        while self.open_list:
             print("----------------------------------------")
             self.print_open_close_list()
-
-            # Openリストが空になったら解なし
-            if not self.open_list:
-                raise Exception("There is no route until reaching a goal.")
 
             # Openリストからf*が最少のノードnを取得
             n = min(self.open_list, key=lambda node: node.fs)
@@ -206,6 +221,11 @@ class Astar(object):
 
                         print("m is New node")
 
+        else:
+            # Openリストが空になったら解なし
+            if not self.end_node:
+                raise Exception("There is no route until reaching a goal.")
+
     def print_map(self, end_node: "Node"):
         # endノードから親を辿っていくと、最短ルートを示す
         n = end_node.parent_node
@@ -234,6 +254,9 @@ class Astar(object):
             map_buffer[y][x] = 'c'
 
         print_nested_list(map_buffer)
+
+    def has_route_to_goal(self):
+        return True if not self.end_node else False
 
 
 if __name__ == '__main__':
