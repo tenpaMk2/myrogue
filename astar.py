@@ -186,8 +186,6 @@ class Astar(object):
             for v in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 y = current_node.pos[0] + v[0]
                 x = current_node.pos[1] + v[1]
-                dist_from_n = ((current_node.pos[0] - y) ** 2 + (current_node.pos[1] - x) ** 2) ** 0.5
-                print("(y, x) : {0} : dist_from_n : {1}".format((y, x), dist_from_n))
 
                 # マップが範囲外または壁(#)の場合はcontinue
                 if self.searching_map.is_outside_of_map(y, x) \
@@ -195,48 +193,7 @@ class Astar(object):
                     print("outside map or at obstacle.")
                     continue
 
-                # 移動先のノードがOpen,Closeのどちらのリストに
-                # 格納されているか、または新規ノードなのかを調べる
-                selecting_open_node = self.open_list.find(y, x)
-
-                if selecting_open_node:
-                    # 移動先のノードがOpenリストに格納されていた場合、
-                    # より小さいf*ならばノードmのf*を更新し、親を書き換え
-                    new_gs = current_node.gs + dist_from_n
-                    new_fs = selecting_open_node.hs + new_gs
-                    if selecting_open_node.fs > new_fs:
-                        selecting_open_node.gs = new_gs
-                        selecting_open_node.parent_node = current_node
-
-                        print("selecting_open_node is in OpenList")
-                else:
-                    # 移動先のノードがOpenリストに無かった場合。
-
-                    selecting_close_node = self.close_list.find(y, x)
-                    if selecting_close_node:
-                        # 移動先のノードがCloseリストに格納されていた場合、
-                        # より小さいf*ならばノードmのf*を更新し、親を書き換え
-                        # かつ、Openリストに移動する
-
-                        new_gs = current_node.gs + dist_from_n
-                        new_fs = selecting_close_node.hs + new_gs
-                        if selecting_close_node.fs > new_fs:
-                            selecting_close_node.gs = new_gs
-                            selecting_close_node.parent_node = current_node
-
-                            self.close_list.remove(selecting_close_node)
-                            self.open_list.append(selecting_close_node)
-
-                            print("selecting_close_node is in CloseList")
-                        else:
-                            print("selecting_close_node better than new.")
-                    else:
-                        # 新規ノードならばOpenリストにノードに追加
-                        selecting_close_node = Node(y, x, current_node.gs + dist_from_n)
-                        selecting_close_node.parent_node = current_node
-                        self.open_list.append(selecting_close_node)
-
-                        print("selecting_close_node is New node")
+                self._process_node_at(y, x, current_node)
 
             # 周りのノードを全てOpenし終えたので、クローズする。
             self.open_list.remove(current_node)
@@ -246,6 +203,52 @@ class Astar(object):
             # Openリストが空になったら解なし
             if not self.end_node:
                 raise Exception("There is no route until reaching a goal.")
+
+    def _process_node_at(self, y: int, x: int, current_node: "Node"):
+
+        dist_from_n = ((current_node.pos[0] - y) ** 2 + (current_node.pos[1] - x) ** 2) ** 0.5
+        new_gs = current_node.gs + dist_from_n
+        print("(y, x) : {0} : dist_from_n : {1}".format((y, x), dist_from_n))
+
+        # 移動先のノードがOpen,Closeのどちらのリストに
+        # 格納されているか、または新規ノードなのかを調べる
+        selecting_open_node = self.open_list.find(y, x)
+        selecting_close_node = self.close_list.find(y, x)
+
+        # Open, Closeの両方に同じノードは入らないことに注意
+        if selecting_open_node:
+            # 移動先のノードがOpenリストに格納されていた場合、
+            # より小さいf*ならばノードmのf*を更新し、親を書き換え
+            new_fs = selecting_open_node.hs + new_gs
+            if selecting_open_node.fs > new_fs:
+                selecting_open_node.gs = new_gs
+                selecting_open_node.parent_node = current_node
+
+                print("selecting_open_node is in OpenList")
+        elif selecting_close_node:
+            # 移動先のノードがCloseリストに格納されていた場合、
+            # より小さいf*ならばノードmのf*を更新し、親を書き換え
+            # かつ、Openリストに移動する
+            new_fs = selecting_close_node.hs + new_gs
+            if selecting_close_node.fs > new_fs:
+                selecting_close_node.gs = new_gs
+                selecting_close_node.parent_node = current_node
+
+                self.close_list.remove(selecting_close_node)
+                self.open_list.append(selecting_close_node)
+
+                print("selecting_close_node is in CloseList")
+            else:
+                print("selecting_close_node is better yet")
+        else:
+            # OpeんリストにもCloseリストにもない場合（新規ノードの場合）。
+            # 新規ノードをOpenリストにに追加
+            selecting_close_node = Node(y, x, current_node.gs + dist_from_n)
+            selecting_close_node.parent_node = current_node
+            self.open_list.append(selecting_close_node)
+
+            print("selecting_close_node is New node")
+
 
     def print_map(self, end_node: "Node"):
         # endノードから親を辿っていくと、最短ルートを示す
