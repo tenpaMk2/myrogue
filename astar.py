@@ -68,6 +68,9 @@ class NodeList(list):
         # def remove(self, node):
         #     del self[self.index(node)]
 
+    def get_minimum_fs_node(self):
+        return min(self, key=lambda node: node.fs)
+
 
 class SearchingMap(object):
     """
@@ -163,26 +166,24 @@ class Astar(object):
             self.print_open_close_list()
 
             # Openリストからf*が最少のノードnを取得
-            n = min(self.open_list, key=lambda node: node.fs)
-            self.open_list.remove(n)
-            self.close_list.append(n)
-            print("n : {0} : fs : {1}".format(n.pos, n.fs))
+            current_node = self.open_list.get_minimum_fs_node()
+            print("current_node : {0} : fs : {1}".format(current_node.pos, current_node.fs))
 
             # 最小ノードがゴールだったら終了
-            if n.is_goal():
+            if current_node.is_goal():
                 print("goal!")
-                self.end_node = n
+                self.end_node = current_node
                 break
 
             # f*() = g*() + h*() -> g*() = f*() - h*()
-            n_gs = n.fs - n.hs
+            n_gs = current_node.fs - current_node.hs
             print("n_gs : {0}".format(n_gs))
 
             # ノードnの移動可能方向のノードを調べる
             for v in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                y = n.pos[0] + v[0]
-                x = n.pos[1] + v[1]
-                dist_from_n = ((n.pos[0] - y) ** 2 + (n.pos[1] - x) ** 2) ** 0.5
+                y = current_node.pos[0] + v[0]
+                x = current_node.pos[1] + v[1]
+                dist_from_n = ((current_node.pos[0] - y) ** 2 + (current_node.pos[1] - x) ** 2) ** 0.5
                 print("(y, x) : {0} : dist_from_n : {1}".format((y, x), dist_from_n))
 
                 # マップが範囲外または壁(#)の場合はcontinue
@@ -193,39 +194,43 @@ class Astar(object):
 
                 # 移動先のノードがOpen,Closeのどちらのリストに
                 # 格納されているか、または新規ノードなのかを調べる
-                m = self.open_list.find(y, x)
+                selecting_node = self.open_list.find(y, x)
 
-                if m:
+                if selecting_node:
                     # 移動先のノードがOpenリストに格納されていた場合、
                     # より小さいf*ならばノードmのf*を更新し、親を書き換え
-                    if m.fs > n_gs + m.hs + dist_from_n:
-                        m.fs = n_gs + m.hs + dist_from_n
-                        m.parent_node = n
+                    if selecting_node.fs > n_gs + selecting_node.hs + dist_from_n:
+                        selecting_node.fs = n_gs + selecting_node.hs + dist_from_n
+                        selecting_node.parent_node = current_node
 
-                        print("m is in OpenList")
+                        print("selecting_node is in OpenList")
                 else:
-                    m = self.close_list.find(y, x)
-                    if m:
+                    selecting_node = self.close_list.find(y, x)
+                    if selecting_node:
                         # 移動先のノードがCloseリストに格納されていた場合、
                         # より小さいf*ならばノードmのf*を更新し、親を書き換え
                         # かつ、Openリストに移動する
-                        if m.fs > n_gs + m.hs + dist_from_n:
-                            m.fs = n_gs + m.hs + dist_from_n
-                            m.parent_node = n
-                            self.open_list.append(m)
-                            self.close_list.remove(m)
+                        if selecting_node.fs > n_gs + selecting_node.hs + dist_from_n:
+                            selecting_node.fs = n_gs + selecting_node.hs + dist_from_n
+                            selecting_node.parent_node = current_node
+                            self.open_list.append(selecting_node)
+                            self.close_list.remove(selecting_node)
 
-                            print("m is in CloseList")
+                            print("selecting_node is in CloseList")
                         else:
-                            print("m <= n_gs + m.hs + dist_from_n")
+                            print("selecting_node <= n_gs + selecting_node.hs + dist_from_n")
                     else:
                         # 新規ノードならばOpenリストにノードに追加
-                        m = Node(y, x)
-                        m.fs = m.hs + (n_gs + dist_from_n)
-                        m.parent_node = n
-                        self.open_list.append(m)
+                        selecting_node = Node(y, x)
+                        selecting_node.fs = selecting_node.hs + (n_gs + dist_from_n)
+                        selecting_node.parent_node = current_node
+                        self.open_list.append(selecting_node)
 
-                        print("m is New node")
+                        print("selecting_node is New node")
+
+            # 周りのノードを全てOpenし終えたので、クローズする。
+            self.open_list.remove(current_node)
+            self.close_list.append(current_node)
 
         else:
             # Openリストが空になったら解なし
