@@ -94,11 +94,17 @@ class SearchingMap(object):
                     self.parsed_map[y][x] = '#'
                     self.obstacles_map[y][x] = True
                 elif chara == 'S':
-                    self.parsed_map[y][x] = 'S'
-                    self.start_pos = (y, x)
+                    if not self.start_pos:
+                        self.parsed_map[y][x] = 'S'
+                        self.start_pos = (y, x)
+                    else:
+                        raise Exception("There are multiple Starts!!")
                 elif chara == 'G':
-                    self.parsed_map[y][x] = 'G'
-                    self.goal_pos = (y, x)
+                    if not self.goal_pos:
+                        self.parsed_map[y][x] = 'G'
+                        self.goal_pos = (y, x)
+                    else:
+                        raise Exception("There are multiply Goals!!")
                 elif chara == ' ':
                     self.parsed_map[y][x] = ' '
                     self.obstacles_map[y][x] = False
