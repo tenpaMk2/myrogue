@@ -6,6 +6,8 @@ import random
 from abc import ABCMeta, abstractmethod
 
 # TODO クラス変数とインスタンス変数を使い分けよう。特にmodelの方で、viewerやMap_modelなどは変わらないので、Factory系はクラス変数にこいつらをおさめた方がいいかも?
+# TODO ダンジョンは大きい部屋をとにかく分割する方式で、木構造を作った方がランダム性高そう。
+# TODO 定数をまとめたファイルが必要かなあ。enumも使いたいところ。
 
 ROOM_PADDING_Y = 3
 ROOM_PADDING_X = 5
