@@ -5,6 +5,10 @@ __author__ = 'tenpa'
 import enum
 
 
+# TODO 斜め移動への対応
+# TODO 距離の計算方法を一元管理
+# TODO Rogue側から呼び出ししやすいように。
+
 @enum.unique
 class DIRECTION(enum.Enum):
     north = 0
