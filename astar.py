@@ -2,15 +2,12 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
-import enum
-
 
 # TODO 斜め移動への対応
 # TODO 距離の計算方法を一元管理
 # TODO Rogue側から呼び出ししやすいように。
 
-@enum.unique
-class DIRECTION(enum.Enum):
+class DIRECTION(object):
     north = 0
     northeast = 1
     east = 2
@@ -19,6 +16,13 @@ class DIRECTION(enum.Enum):
     southwest = 5
     west = 6
     northwest = 7
+
+
+class MAP(object):
+    wall = '#'
+    start = 'S'
+    goal = 'G'
+    nothing = ' '
 
 
 def print_nested_list(nested_list: list):
@@ -105,23 +109,23 @@ class SearchingMap(object):
 
         for y, row in enumerate(matrix_map):
             for x, chara in enumerate(row):
-                if chara == '#':
-                    self.parsed_map[y][x] = '#'
+                if chara == MAP.wall:
+                    self.parsed_map[y][x] = MAP.wall
                     self.obstacles_map[y][x] = True
-                elif chara == 'S':
+                elif chara == MAP.start:
                     if not self.start_pos:
-                        self.parsed_map[y][x] = 'S'
+                        self.parsed_map[y][x] = MAP.start
                         self.start_pos = (y, x)
                     else:
                         raise Exception("There are multiple Starts!!")
-                elif chara == 'G':
+                elif chara == MAP.goal:
                     if not self.goal_pos:
-                        self.parsed_map[y][x] = 'G'
+                        self.parsed_map[y][x] = MAP.goal
                         self.goal_pos = (y, x)
                     else:
                         raise Exception("There are multiply Goals!!")
-                elif chara == ' ':
-                    self.parsed_map[y][x] = ' '
+                elif chara == MAP.nothing:
+                    self.parsed_map[y][x] = MAP.nothing
                     self.obstacles_map[y][x] = False
                 else:
                     raise Exception("invalid map object!!!!")
@@ -168,13 +172,17 @@ class Astar(object):
         self.start_node = Node(*Node.start_pos, gs=0)
         self.end_node = None
 
+        # ゴールまでの道のりとなるノードを格納するリスト
+        self._route_nodes = []
+
+
         # スタート地点のノードをオープンリストに加える
         self.open_list.append(self.start_node)
 
         # オープンリストが空になるまで続ける
         while self.open_list:
             print("----------------------------------------")
-            self.print_open_close_list()
+            self.print_open_close_list_on_map()
 
             # Openリストからf*が最少のノードnを取得
             current_node = self.open_list.get_minimum_fs_node()
@@ -197,6 +205,7 @@ class Astar(object):
                     print("outside map or at obstacle.")
                     continue
 
+                # 移動先のノードを処理する
                 self._process_node_at(y, x, current_node)
 
             # 周りのノードを全てOpenし終えたので、クローズする。
@@ -207,6 +216,8 @@ class Astar(object):
             # Openリストが空になったら解なし
             if not self.end_node:
                 raise Exception("There is no route until reaching a goal.")
+
+        self._make_route_nodes(self.end_node)
 
     def _process_node_at(self, y: int, x: int, current_node: "Node"):
 
@@ -253,22 +264,25 @@ class Astar(object):
 
             print("selecting_close_node is New node")
 
-
-    def print_map(self, end_node: "Node"):
+    def _make_route_nodes(self, end_node: "Node"):
         # endノードから親を辿っていくと、最短ルートを示す
         n = end_node.parent_node
-        map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
 
-        while True:
-            if n.parent_node is None:
-                break
-            map_buffer[n.pos[0]][n.pos[1]] = '+'
+        while n.parent_node is not None:
+            self._route_nodes.append(n)
             n = n.parent_node
 
-        print("n's fs : {0}".format(n.fs))
+    def print_route_on_map(self):
+        map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
+
+        print("------------------------------------------")
+        for node in self._route_nodes:
+            map_buffer[node.pos[0]][node.pos[1]] = '+'
+            print("{0} fs : {1}".format(node.pos, node.fs))
+
         print_nested_list(map_buffer)
 
-    def print_open_close_list(self):
+    def print_open_close_list_on_map(self):
         map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
 
         for open_node in self.open_list:
@@ -285,6 +299,9 @@ class Astar(object):
 
     def has_route_to_goal(self):
         return True if not self.end_node else False
+
+    def get_next_position(self):
+        return self._route_nodes[-1].pos
 
 
 if __name__ == '__main__':
@@ -311,4 +328,5 @@ if __name__ == '__main__':
 
     astar = Astar(s_map)
 
-    astar.print_map(astar.end_node)
+    astar.print_route_on_map()
+    print(astar.get_next_position())

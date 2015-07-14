@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+
 # TODO 依存してるモジュールが無くてもテストできるように、そのメソッドだけもつダミークラスをテスト用に作ったほうがいいかも。
 # TODO そもそもObserverにいろいろ役割を持たせ過ぎなんじゃないだろうか…。
 
@@ -20,6 +21,7 @@ class Subject(object):
     def notify(self):
         for observer in self._observers:
             observer.update()
+
 
 # FIXME 循環importをさけるためにこんな場所に。やはり、Observerが単体で動作するのはまずい気がする。
 # ViewObserverとControllerObserverに分けたらどうか。
