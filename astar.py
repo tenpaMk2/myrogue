@@ -2,7 +2,14 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
+logging.info('uhohoi')
+logging.debug('ahohoi')
+
+
+# TODO loggingを使って、イベントメッセージをprintから書き直し。（aiの方との連携はその後。）
 # TODO 斜め移動への対応
 # TODO 距離の計算方法を一元管理
 # TODO Rogue側から呼び出ししやすいように。
