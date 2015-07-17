@@ -3,16 +3,22 @@
 __author__ = 'tenpa'
 
 import logging
-
-logging.basicConfig(level=logging.DEBUG)
-logging.info('uhohoi')
-logging.debug('ahohoi')
-
+import sys
 
 # TODO loggingを使って、イベントメッセージをprintから書き直し。（aiの方との連携はその後。）
 # TODO 斜め移動への対応
 # TODO 距離の計算方法を一元管理
 # TODO Rogue側から呼び出ししやすいように。
+
+# Loggerの設定。stderrの代わりにstdoutを使う。文字が白くて目に優しい!!
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(levelname)-5s:%(funcName)-20s:%(message)s")
+ch.setFormatter(formatter)
+root.addHandler(ch)
+
 
 class DIRECTION(object):
     north = 0
@@ -34,7 +40,7 @@ class MAP(object):
 
 def print_nested_list(nested_list: list):
     formatted_str = "\n".join(["".join(row) for row in nested_list])
-    print(formatted_str)
+    logging.debug('\n' + formatted_str)
 
 
 class Node(object):
@@ -188,16 +194,16 @@ class Astar(object):
 
         # オープンリストが空になるまで続ける
         while self.open_list:
-            print("----------------------------------------")
+            logging.info("----------------------------------------")
             self.print_open_close_list_on_map()
 
             # Openリストからf*が最少のノードnを取得
             current_node = self.open_list.get_minimum_fs_node()
-            print("current_node : {0} : fs : {1}".format(current_node.pos, current_node.fs))
+            logging.info("current_node : {0} : fs : {1}".format(current_node.pos, current_node.fs))
 
             # 最小ノードがゴールだったら終了
             if current_node.is_goal():
-                print("goal!")
+                logging.info("goal!")
                 self.end_node = current_node
                 break
 
@@ -209,7 +215,7 @@ class Astar(object):
                 # マップが範囲外または壁(#)の場合はcontinue
                 if self.searching_map.is_outside_of_map(y, x) \
                         or self.searching_map.is_obstacle_at(y, x):
-                    print("outside map or at obstacle.")
+                    logging.info("outside map or at obstacle.")
                     continue
 
                 # 移動先のノードを処理する
@@ -230,7 +236,7 @@ class Astar(object):
 
         dist_from_n = ((current_node.pos[0] - y) ** 2 + (current_node.pos[1] - x) ** 2) ** 0.5
         new_gs = current_node.gs + dist_from_n
-        print("(y, x) : {0} : dist_from_n : {1}".format((y, x), dist_from_n))
+        logging.info("(y, x) : {0} : dist_from_n : {1}".format((y, x), dist_from_n))
 
         # 移動先のノードがOpen,Closeのどちらのリストに
         # 格納されているか、または新規ノードなのかを調べる
@@ -246,7 +252,7 @@ class Astar(object):
                 selecting_open_node.gs = new_gs
                 selecting_open_node.parent_node = current_node
 
-                print("selecting_open_node is in OpenList")
+                logging.info("selecting_open_node is in OpenList")
         elif selecting_close_node:
             # 移動先のノードがCloseリストに格納されていた場合、
             # より小さいf*ならばノードmのf*を更新し、親を書き換え
@@ -259,9 +265,9 @@ class Astar(object):
                 self.close_list.remove(selecting_close_node)
                 self.open_list.append(selecting_close_node)
 
-                print("selecting_close_node is in CloseList")
+                logging.info("selecting_close_node is in CloseList")
             else:
-                print("selecting_close_node is better yet")
+                logging.info("selecting_close_node is better yet")
         else:
             # OpeんリストにもCloseリストにもない場合（新規ノードの場合）。
             # 新規ノードをOpenリストにに追加
@@ -269,7 +275,7 @@ class Astar(object):
             selecting_close_node.parent_node = current_node
             self.open_list.append(selecting_close_node)
 
-            print("selecting_close_node is New node")
+            logging.info("selecting_close_node is New node")
 
     def _make_route_nodes(self, end_node: "Node"):
         # endノードから親を辿っていくと、最短ルートを示す
@@ -282,10 +288,10 @@ class Astar(object):
     def print_route_on_map(self):
         map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
 
-        print("------------------------------------------")
+        logging.info("------------------------------------------")
         for node in self._route_nodes:
             map_buffer[node.pos[0]][node.pos[1]] = '+'
-            print("{0} fs : {1}".format(node.pos, node.fs))
+            logging.info("{0} fs : {1}".format(node.pos, node.fs))
 
         print_nested_list(map_buffer)
 
@@ -328,12 +334,12 @@ if __name__ == '__main__':
     ]
 
     s_map = SearchingMap(map_data)
-    print("print parsed_map")
+    logging.debug("print parsed_map")
     s_map.print_parsed_map()
-    print("print obstacles_map")
+    logging.debug("print obstacles_map")
     s_map.print_obstacles_map()
 
     astar = Astar(s_map)
 
     astar.print_route_on_map()
-    print(astar.get_next_position())
+    logging.debug(astar.get_next_position())
