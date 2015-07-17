@@ -188,13 +188,12 @@ class Astar(object):
         # ゴールまでの道のりとなるノードを格納するリスト
         self._route_nodes = []
 
-
         # スタート地点のノードをオープンリストに加える
         self.open_list.append(self.start_node)
 
         # オープンリストが空になるまで続ける
         while self.open_list:
-            logging.info("----------------------------------------")
+            logging.info("----------------Open Start----------------")
             self.print_open_close_list_on_map()
 
             # Openリストからf*が最少のノードnを取得
@@ -215,7 +214,7 @@ class Astar(object):
                 # マップが範囲外または壁(#)の場合はcontinue
                 if self.searching_map.is_outside_of_map(y, x) \
                         or self.searching_map.is_obstacle_at(y, x):
-                    logging.info("outside map or at obstacle.")
+                    logging.info("{0} is outside map or at obstacle.".format(v))
                     continue
 
                 # 移動先のノードを処理する
@@ -236,7 +235,7 @@ class Astar(object):
 
         dist_from_n = ((current_node.pos[0] - y) ** 2 + (current_node.pos[1] - x) ** 2) ** 0.5
         new_gs = current_node.gs + dist_from_n
-        logging.info("(y, x) : {0} : dist_from_n : {1}".format((y, x), dist_from_n))
+        logging.info("{0} : dist_from_n : {1}".format((y, x), dist_from_n))
 
         # 移動先のノードがOpen,Closeのどちらのリストに
         # 格納されているか、または新規ノードなのかを調べる
@@ -252,7 +251,9 @@ class Astar(object):
                 selecting_open_node.gs = new_gs
                 selecting_open_node.parent_node = current_node
 
-                logging.info("selecting_open_node is in OpenList")
+                logging.info("{0} is updated in OpenList".format((y, x)))
+            else:
+                logging.info("{0} is not updated in OpenList".format((y, x)))
         elif selecting_close_node:
             # 移動先のノードがCloseリストに格納されていた場合、
             # より小さいf*ならばノードmのf*を更新し、親を書き換え
@@ -265,9 +266,9 @@ class Astar(object):
                 self.close_list.remove(selecting_close_node)
                 self.open_list.append(selecting_close_node)
 
-                logging.info("selecting_close_node is in CloseList")
+                logging.info("{0} is updated in CloseList".format((y, x)))
             else:
-                logging.info("selecting_close_node is better yet")
+                logging.info("{0} is not updated in CloseList".format((y, x)))
         else:
             # OpeんリストにもCloseリストにもない場合（新規ノードの場合）。
             # 新規ノードをOpenリストにに追加
@@ -275,7 +276,7 @@ class Astar(object):
             selecting_close_node.parent_node = current_node
             self.open_list.append(selecting_close_node)
 
-            logging.info("selecting_close_node is New node")
+            logging.info("{0} is New node".format((y, x)))
 
     def _make_route_nodes(self, end_node: "Node"):
         # endノードから親を辿っていくと、最短ルートを示す
