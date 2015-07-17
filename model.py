@@ -7,6 +7,7 @@ import observer
 import turn
 from abc import ABCMeta, abstractmethod
 
+
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
@@ -57,13 +58,12 @@ class MapModel(observer.Subject):
 
         raise Exception("map is collapsed!!!!")
 
-    # TODO filterかなんかで効率化できそう。
     def get_character_at(self, position):
-        for obstacle_obje in self.obstacle_objects:
-            if position == obstacle_obje.get_position():
-                if isinstance(obstacle_obje, Character):
-                    return obstacle_obje
-        return None
+        # 条件に沿うオブジェクトをリストから高速にサーチする方法。
+        # 条件に沿う最初のオブジェクトのみを返す。
+        return next((obje for obje in self.obstacle_objects
+                     if obje.get_position() == position and isinstance(obje, Character)
+                     ), None)
 
     def set_message(self, map_object: "MapObject", message: str):
         self.message = "{0} >{1}".format(map_object.pose_icon, message)
@@ -372,10 +372,12 @@ if __name__ == '__main__':
     print(para_v)
     print(para_v.__dict__)
 
+
     class HHH(object):
         def __init__(self, abc):
             self.abc = abc
             self.pos_and_dir = PositionAndDirection([2, 2], 0)
+
 
     hhh = HHH("fjoijio")
 
