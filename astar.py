@@ -193,7 +193,7 @@ class Astar(object):
 
         # オープンリストが空になるまで続ける
         while self.open_list:
-            logging.info("----------------Open Start----------------")
+            logging.info("\n---------------------------Open Start------------------------")
             self.print_open_close_list_on_map()
 
             # Openリストからf*が最少のノードnを取得
