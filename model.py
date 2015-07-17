@@ -37,8 +37,8 @@ class MapModel(observer.Subject):
         self.message = ""
 
     def is_empty_place_at(self, position):
-        obstacles_position = [obje.get_position() for obje in self.obstacle_objects]
-        return position not in obstacles_position
+        obstacles_positions = [obje.get_position() for obje in self.obstacle_objects]
+        return position not in obstacles_positions
 
     def interact(self, people: "Character"):
         object_front_position = people.get_front_position()
@@ -48,13 +48,13 @@ class MapModel(observer.Subject):
         self.notify()
 
     def get_map_object_at(self, position):
-        for obstacle_obje in self.obstacle_objects:
-            if position == obstacle_obje.get_position():
-                return obstacle_obje
+        obstacle_obje = next((obje for obje in self.obstacle_objects if obje.get_position() == position), None)
+        if obstacle_obje:
+            return obstacle_obje
 
-        for floor_obje in self.floor_objects:
-            if position == floor_obje.get_position():
-                return floor_obje
+        floor_obje = next((obje for obje in self.floor_objects if obje.get_position() == position), None)
+        if floor_obje:
+            return floor_obje
 
         raise Exception("map is collapsed!!!!")
 
@@ -69,11 +69,14 @@ class MapModel(observer.Subject):
         self.message = "{0} >{1}".format(map_object.pose_icon, message)
 
     def make_map_edge(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                if y == 0 or y == self.height - 1 or x == 0 or x == self.width - 1:
-                    pos_and_dir = PositionAndDirection([y, x])
-                    self.obstacle_objects.append(Wall(self, pos_and_dir))
+        # リスト内包表記は内側のforであるほど、後（右）に書かれることに注意しよう。条件も同様に内側が後。
+        edge_y_x = ([y, x] for y in range(self.height) for x in range(self.width)
+                    if y == 0 or y == self.height - 1
+                    or x == 0 or x == self.width - 1)
+        edge_p_and_d = (PositionAndDirection(pos) for pos in edge_y_x)
+        wall = (Wall(self, p_and_d) for p_and_d in edge_p_and_d)
+
+        self.obstacle_objects.extend(wall)
 
     def register_obstacle(self, obstacle_object: "ObstacleObject"):
         self.obstacle_objects.append(obstacle_object)
@@ -89,7 +92,7 @@ class MapModel(observer.Subject):
 
 
 class BattleField(object):
-    def __init__(self, map_model:"MapModel", attacker:"Character"):
+    def __init__(self, map_model: "MapModel", attacker: "Character"):
         self.map_model = map_model
         self.attacker = attacker
 
