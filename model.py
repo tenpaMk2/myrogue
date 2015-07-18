@@ -127,11 +127,10 @@ class BattleField(object):
         logging.info("def_tou : {0}".format(def_tou))
 
         damage = atk_str - def_tou
+        damage = damage if damage > 0 else 0
         logging.info("damage : {0}".format(damage))
-        cut_damage = damage if damage > 0 else 0
-        logging.info("cut_damage : {0}".format(cut_damage))
 
-        defender.parameter.hp -= cut_damage
+        defender.parameter.hp -= damage
         logging.info("defender hp : {0}".format(defender.parameter.hp))
 
         if defender.is_died():
