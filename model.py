@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
+from npcai import VillagerAI
+
 __author__ = 'tenpa'
+
+from abc import ABCMeta, abstractmethod
 
 from position import PositionAndDirection
 import observer
-import turn
-from abc import ABCMeta, abstractmethod
 
+import turn
+import npcai
 
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
@@ -265,7 +269,7 @@ class Villager(Character):
                  ):
         super().__init__(map_model, pos_and_dir, parameter, turn_manager)
         self.comment = comment
-        self.ai = VillagerAI(self, map_model)
+        self.ai = npcai.VillagerAI(self, map_model)
 
     def get_comment(self):
         return self.comment
@@ -276,8 +280,7 @@ class Villager(Character):
 
     def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
-            self.ai,
-            self.parameter.turn_period
+            self.ai
         )
         self.turn_manager.register(queue_entry)
 
@@ -297,23 +300,6 @@ class Hero(Character):
             self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
-
-
-class AIBase(metaclass=ABCMeta):
-    @abstractmethod
-    def act(self):
-        pass
-
-
-class VillagerAI(AIBase):
-    def __init__(self, villager: "Villager", map_model: "MapModel"):
-        self.villager = villager
-        self.map_model = map_model
-
-    def act(self):
-        # ここにAIのロジック
-        # とりあえず今は何もしない。
-        self.villager.do_nothing()
 
 
 import json, os

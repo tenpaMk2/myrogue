@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
+
 __author__ = 'tenpa'
 
-import model
 import observer
 from abc import ABCMeta, abstractmethod
+import npcai
 
 
 class TurnManager(object):
@@ -50,16 +51,16 @@ class TurnQueueEntryBase(metaclass=ABCMeta):
 
 
 class HeroTurnQueueEntry(TurnQueueEntryBase):
-    def __init__(self, observer: "observer.ObserverBase", turn_period: int):
+    def __init__(self, obs: "observer.ObserverBase", turn_period: int):
         super(HeroTurnQueueEntry, self).__init__(turn_period)
-        self.observer = observer
+        self.observer = obs
 
     def start_turn(self):
         self.observer.update_turn_start()
 
 
 class NPCTurnQueueEntry(TurnQueueEntryBase):
-    def __init__(self, ai: "model.AIBase", turn_period: int):
+    def __init__(self, ai: "npcai.AIBase", turn_period: int):
         super(NPCTurnQueueEntry, self).__init__(turn_period)
         self.ai = ai
 
@@ -72,16 +73,17 @@ class NPCTurnQueueEntry(TurnQueueEntryBase):
 
 class TurnQueueEntryFactory(object):
     @staticmethod
-    def make_hero_turn_queue(observer: "observer.ObserverBase", turn_period: int):
-        return HeroTurnQueueEntry(observer, turn_period)
+    def make_hero_turn_queue(obs: "observer.ObserverBase", turn_period: int):
+        return HeroTurnQueueEntry(obs, turn_period)
 
     @staticmethod
-    def make_npc_turn_queue(ai: "model.AIBase", turn_period: int):
+    def make_npc_turn_queue(ai: "npcai.AIBase", turn_period: int):
         return NPCTurnQueueEntry(ai, turn_period)
 
 
 if __name__ == "__main__":
-    class TestObserver(observer.ObserverBase):
+    class ObserverDummy(observer.ObserverBase):
+        # noinspection PyMissingConstructor
         def __init__(self, name: str="hoge"):
             self.name = name
 
@@ -93,7 +95,7 @@ if __name__ == "__main__":
             print(self.name)
             print('')
 
-    class TestAI(model.AIBase):
+    class AIDummy(npcai.AIBase):
         def __init__(self, name: str="AI"):
             self.name = name
 
@@ -104,11 +106,11 @@ if __name__ == "__main__":
 
     tm = TurnManager()
 
-    hero_entry = TurnQueueEntryFactory.make_hero_turn_queue(TestObserver("I'm Hero."), 2)
-    villager_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("I'm Villager."), 23)
-    sonchou_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("私が村長です。"), 23)
-    enemy_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("I'm Enemy."), 12)
-    boss_entry = TurnQueueEntryFactory.make_npc_turn_queue(TestAI("I'm Boss."), 33)
+    hero_entry = TurnQueueEntryFactory.make_hero_turn_queue(ObserverDummy("I'm Hero."), 2)
+    villager_entry = TurnQueueEntryFactory.make_npc_turn_queue(AIDummy("I'm Villager."), 23)
+    sonchou_entry = TurnQueueEntryFactory.make_npc_turn_queue(AIDummy("私が村長です。"), 23)
+    enemy_entry = TurnQueueEntryFactory.make_npc_turn_queue(AIDummy("I'm Enemy."), 12)
+    boss_entry = TurnQueueEntryFactory.make_npc_turn_queue(AIDummy("I'm Boss."), 33)
 
     tm.register(hero_entry)
     tm.register(villager_entry)
