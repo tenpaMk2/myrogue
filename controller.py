@@ -39,5 +39,8 @@ class Controller(observer.Subject):
             self.hero.run()
         elif arg in ('a', 'A'):
             self.hero.attack_front()
+        elif arg in ('exec'):
+            exec_arg = input()
+            exec(exec_arg)
         else:
             raise ValueError('Invalid command!')
