@@ -48,7 +48,11 @@ class MapModel(observer.Subject):
         self.notify()
 
     def get_map_object_at(self, position):
-        obstacle_obje = next((obje for obje in self.obstacle_objects if obje.get_position() == position), None)
+        obstacle_obje = next(
+            (obje for obje in self.obstacle_objects if obje.get_position() == position)
+            , None
+        )
+
         if obstacle_obje:
             return obstacle_obje
 
@@ -61,9 +65,10 @@ class MapModel(observer.Subject):
     def get_character_at(self, position):
         # 条件に沿うオブジェクトをリストから高速にサーチする方法。
         # 条件に沿う最初のオブジェクトのみを返す。
-        return next((obje for obje in self.obstacle_objects
-                     if obje.get_position() == position and isinstance(obje, Character)
-                     ), None)
+        return next(
+            (obje for obje in self.obstacle_objects
+             if obje.get_position() == position and isinstance(obje, Character))
+            , None)
 
     def set_message(self, map_object: "MapObject", message: str):
         self.message = "{0} >{1}".format(map_object.pose_icon, message)
@@ -74,9 +79,9 @@ class MapModel(observer.Subject):
                     if y == 0 or y == self.height - 1
                     or x == 0 or x == self.width - 1)
         edge_p_and_d = (PositionAndDirection(pos) for pos in edge_y_x)
-        wall = (Wall(self, p_and_d) for p_and_d in edge_p_and_d)
+        walls = (Wall(self, p_and_d) for p_and_d in edge_p_and_d)
 
-        self.obstacle_objects.extend(wall)
+        self.obstacle_objects.extend(walls)
 
     def register_obstacle(self, obstacle_object: "ObstacleObject"):
         self.obstacle_objects.append(obstacle_object)
