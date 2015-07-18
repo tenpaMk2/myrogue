@@ -12,6 +12,7 @@ import observer
 import turn
 import npcai
 
+
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
@@ -303,7 +304,8 @@ class Hero(Character):
         self.turn_manager.register(queue_entry)
 
 
-import json, os
+import json
+import os
 
 # TODO どこかで設定用の変数を集めたファイルが必要だ。
 PARAMETERS_DIRECTORY = os.path.join("parameters")
