@@ -280,7 +280,8 @@ class Villager(Character):
 
     def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
-            self.ai
+            self.ai,
+            self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
 

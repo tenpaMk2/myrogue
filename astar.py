@@ -3,22 +3,15 @@
 __author__ = 'tenpa'
 
 import logging
-import sys
+import logging.config
+
+logging.config.fileConfig("config/logging.conf")
+
 
 # TODO loggingを使って、イベントメッセージをprintから書き直し。（aiの方との連携はその後。）
 # TODO 斜め移動への対応
 # TODO 距離の計算方法を一元管理
 # TODO Rogue側から呼び出ししやすいように。
-
-# Loggerの設定。stderrの代わりにstdoutを使う。文字が白くて目に優しい!!
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(levelname)-5s:%(funcName)-20s:%(message)s")
-ch.setFormatter(formatter)
-root.addHandler(ch)
-
 
 class DIRECTION(object):
     north = 0

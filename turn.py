@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-
 __author__ = 'tenpa'
+
+import logging
+import logging.config
+
+logging.config.fileConfig("config/logging.conf")
 
 import observer
 from abc import ABCMeta, abstractmethod
@@ -24,7 +28,7 @@ class TurnManager(object):
 
         self._decrease_turn_time(spent_time)
 
-        print("start_turn:", current_entry)
+        logging.info("start_turn: {0}".format(current_entry))
         current_entry.start_turn()
 
     def _decrease_turn_time(self, decreasing_time: int):
@@ -32,9 +36,9 @@ class TurnManager(object):
             entry.decrease_turn_time(decreasing_time)
 
     def _print_queue(self):
-        print("<-----queue----->")
+        logging.debug("<-----queue----->")
         for entry in self.queue:
-            print("remain time = {0}: {1}".format(entry.next_turn_time, entry))
+            logging.debug("remain time = {0}: {1}".format(entry.next_turn_time, entry))
 
 
 class TurnQueueEntryBase(metaclass=ABCMeta):
@@ -91,18 +95,20 @@ if __name__ == "__main__":
             pass
 
         def update_turn_start(self):
-            print("---current Hero turn---")
-            print(self.name)
-            print('')
+            logging.debug("-----start Hero turn-----")
+            logging.debug(self.name)
+            logging.debug('')
+
 
     class AIDummy(npcai.AIBase):
         def __init__(self, name: str="AI"):
             self.name = name
 
         def act(self):
-            print("---current NPC turn---")
-            print(self.name)
-            print('')
+            logging.debug("-----start NPC turn-----")
+            logging.debug(self.name)
+            logging.debug('')
+
 
     tm = TurnManager()
 
