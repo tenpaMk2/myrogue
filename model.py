@@ -8,6 +8,7 @@ import logging.config
 logging.config.fileConfig("config/logging.conf")
 
 from abc import ABCMeta, abstractmethod
+import warnings
 
 from position import PositionAndDirection
 import observer
@@ -361,16 +362,16 @@ class Parameter(object):
         self.turn_period = turn_period
 
     def load_parameter(self):
-        logging.warning("not implemented")
+        warnings.warn("not implemented", Warning)
 
 
 if __name__ == '__main__':
     para = ParameterFactory.make_hero()
-    print(para)
-    print(para.__dict__)
+    logging.debug(para)
+    logging.debug(para.__dict__)
     para_v = ParameterFactory.make_villager()
-    print(para_v)
-    print(para_v.__dict__)
+    logging.debug(para_v)
+    logging.debug(para_v.__dict__)
 
 
     class HHH(object):
@@ -386,6 +387,6 @@ if __name__ == '__main__':
     aho.append(hhh)
     aho.append('c')
 
-    print(aho)
+    logging.debug(aho)
     del hhh
     # print(hhh.abc)
