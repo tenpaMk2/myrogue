@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-from npcai import VillagerAI
-
 __author__ = 'tenpa'
+
+import logging
+import logging.config
+
+logging.config.fileConfig("config/logging.conf")
 
 from abc import ABCMeta, abstractmethod
 
 from position import PositionAndDirection
 import observer
+import logging
 
 import turn
 import npcai
@@ -119,20 +123,20 @@ class BattleField(object):
         atk_str = self.attacker.parameter.strength
         def_tou = defender.parameter.toughness
 
-        print("atk_str : {0}".format(atk_str))
-        print("def_tou : {0}".format(def_tou))
+        logging.info("atk_str : {0}".format(atk_str))
+        logging.info("def_tou : {0}".format(def_tou))
 
         damage = atk_str - def_tou
-        print("damage : {0}".format(damage))
+        logging.info("damage : {0}".format(damage))
         cut_damage = damage if damage > 0 else 0
-        print("cut_damage : {0}".format(cut_damage))
+        logging.info("cut_damage : {0}".format(cut_damage))
 
         defender.parameter.hp -= cut_damage
-        print("defender hp : {0}".format(defender.parameter.hp))
+        logging.info("defender hp : {0}".format(defender.parameter.hp))
 
         if defender.is_died():
             defender.die()
-            print("die!!")
+            logging.info("die!!")
 
 
 # 全てのマップオブジェクトの基本となるクラス
@@ -276,7 +280,7 @@ class Villager(Character):
         return self.comment
 
     def do_nothing(self):
-        print("do_nothing:{0}".format(self))
+        logging.debug("{0}".format(self))
         self._end_turn()
 
     def _end_turn(self):
@@ -358,7 +362,7 @@ class Parameter(object):
         self.turn_period = turn_period
 
     def load_parameter(self):
-        print("load_parameter")
+        logging.warning("not implemented")
 
 
 if __name__ == '__main__':

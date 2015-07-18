@@ -2,6 +2,11 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+import logging
+import logging.config
+
+logging.config.fileConfig("config/logging.conf")
+
 from abc import ABCMeta, abstractmethod
 import model
 
