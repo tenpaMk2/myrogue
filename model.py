@@ -15,6 +15,7 @@ from abc import ABCMeta, abstractmethod
 
 class MapModel(observer.Subject):
     # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
+    # TODO ダンジョンの生成系メソッドを分離すべき。クラス肥大化しすぎ。
 
     def __init__(self, size: (int, int)):
         observer.Subject.__init__(self)
