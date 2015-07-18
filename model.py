@@ -29,10 +29,19 @@ class MapModel(observer.Subject):
         self.make_map_edge()
 
     def _init_floor_objects(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                pos_and_dir = PositionAndDirection([y, x])
-                self.floor_objects.append(Floor(self, pos_and_dir))
+        p_and_ds = (PositionAndDirection((y, x)) for y in range(self.height) for x in range(self.width))
+        floors = (Floor(self, p_and_d) for p_and_d in p_and_ds)
+        self.floor_objects.extend(floors)
+
+    def make_map_edge(self):
+        # リスト内包表記は内側のforであるほど、後（右）に書かれることに注意しよう。条件も同様に内側が後。
+        edge_y_x = ([y, x] for y in range(self.height) for x in range(self.width)
+                    if y == 0 or y == self.height - 1
+                    or x == 0 or x == self.width - 1)
+        edge_p_and_d = (PositionAndDirection(pos) for pos in edge_y_x)
+        walls = (Wall(self, p_and_d) for p_and_d in edge_p_and_d)
+
+        self.obstacle_objects.extend(walls)
 
     def clear_message(self):
         self.message = ""
@@ -73,16 +82,6 @@ class MapModel(observer.Subject):
 
     def set_message(self, map_object: "MapObject", message: str):
         self.message = "{0} >{1}".format(map_object.pose_icon, message)
-
-    def make_map_edge(self):
-        # リスト内包表記は内側のforであるほど、後（右）に書かれることに注意しよう。条件も同様に内側が後。
-        edge_y_x = ([y, x] for y in range(self.height) for x in range(self.width)
-                    if y == 0 or y == self.height - 1
-                    or x == 0 or x == self.width - 1)
-        edge_p_and_d = (PositionAndDirection(pos) for pos in edge_y_x)
-        walls = (Wall(self, p_and_d) for p_and_d in edge_p_and_d)
-
-        self.obstacle_objects.extend(walls)
 
     def register_obstacle(self, obstacle_object: "ObstacleObject"):
         self.obstacle_objects.append(obstacle_object)
