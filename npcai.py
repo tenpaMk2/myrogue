@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-from abc import ABCMeta, abstractmethod
-
 __author__ = 'tenpa'
+
+from abc import ABCMeta, abstractmethod
+import model
 
 
 class AIBase(metaclass=ABCMeta):
@@ -12,7 +13,7 @@ class AIBase(metaclass=ABCMeta):
 
 
 class VillagerAI(AIBase):
-    def __init__(self, villager: "Villager", map_model: "MapModel"):
+    def __init__(self, villager: "model.Villager", map_model: "model.MapModel"):
         self.villager = villager
         self.map_model = map_model
 
