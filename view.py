@@ -2,6 +2,11 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+import logging
+import logging.config
+
+logging.config.fileConfig("config/logging.conf")
+
 import model
 import observer
 
@@ -12,6 +17,7 @@ class Viewer(observer.Subject):
         self.map_model = map_model
 
     def draw(self):
+        logging.info("Viewer")
         self._draw_map()
         self._draw_message()
 
@@ -43,10 +49,12 @@ class Viewer(observer.Subject):
 
     @staticmethod
     def draw_message_before_input():
+        logging.info("Viewer")
         print('')
         print('')
 
     def draw_message_after_input(self, input_message):
+        logging.info("Viewer")
         print('>' * self.map_model.width, end='')
         print(' ', end='')
         print(input_message)

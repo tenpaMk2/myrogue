@@ -2,6 +2,11 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+import logging
+import logging.config
+
+logging.config.fileConfig("config/logging.conf")
+
 
 # TODO 依存してるモジュールが無くてもテストできるように、そのメソッドだけもつダミークラスをテスト用に作ったほうがいいかも。
 # TODO そもそもObserverにいろいろ役割を持たせ過ぎなんじゃないだろうか…。
@@ -19,6 +24,8 @@ class Subject(object):
 
     # notifyの呼び出しもとってMapModelなんだよね。turn_endのときしか更新しないなら、なんかもういらない感ある。
     def notify(self):
+        logging.info("Subject")
+
         for observer in self._observers:
             observer.update()
 
@@ -47,18 +54,21 @@ class ObserverBase(metaclass=ABCMeta):
 
 class Observer(ObserverBase):
     def update(self):
+        logging.info("Observer")
         self.viewer.draw()
 
     def update_turn_start(self):
+        logging.info("--start turn--")
         self.viewer.draw()
         self.controller.start_input()
 
 
 # turn_endはロジックに関わるので、Observerに書くべきではないと判断。
+# FIXME NPCObserverは使われない。AIにその役目を奪われた。消すべきか?
 
 class NPCObserver(ObserverBase):
     def update(self):
         pass
 
     def update_turn_start(self):
-        print("--start NPC turn--")
+        logging.info("--start NPC turn--")

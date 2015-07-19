@@ -12,8 +12,6 @@ import warnings
 
 from position import PositionAndDirection
 import observer
-import logging
-
 import turn
 import npcai
 
@@ -69,8 +67,8 @@ class MapModel(observer.Subject):
 
     def get_map_object_at(self, position):
         obstacle_obje = next(
-            (obje for obje in self.obstacle_objects if obje.get_position() == position)
-            , None
+            (obje for obje in self.obstacle_objects if obje.get_position() == position),
+            None
         )
 
         if obstacle_obje:
@@ -87,8 +85,8 @@ class MapModel(observer.Subject):
         # 条件に沿う最初のオブジェクトのみを返す。
         return next(
             (obje for obje in self.obstacle_objects
-             if obje.get_position() == position and isinstance(obje, Character))
-            , None)
+             if obje.get_position() == position and isinstance(obje, Character)),
+            None)
 
     def set_message(self, map_object: "MapObject", message: str):
         self.message = "{0} >{1}".format(map_object.pose_icon, message)
@@ -158,7 +156,8 @@ class MapObject(object):
 class ObstacleObject(MapObject):
     comment = "ERROR!! I'm Obstacle_Object."
 
-    def is_obstacle(self):
+    @staticmethod
+    def is_obstacle():
         return True
 
 
@@ -166,7 +165,8 @@ class ObstacleObject(MapObject):
 class NonObstacleObject(MapObject):
     comment = "ERROR!! I'm Non_Obstacle_Object."
 
-    def is_obstacle(self):
+    @staticmethod
+    def is_obstacle():
         return False
 
 

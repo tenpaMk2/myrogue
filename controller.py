@@ -2,6 +2,11 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+import logging
+import logging.config
+
+logging.config.fileConfig("config/logging.conf")
+
 import model
 import view
 import observer
@@ -20,6 +25,8 @@ class Controller(observer.Subject):
         self.viewer = viewer
 
     def start_input(self):
+        logging.info("Controller")
+
         self.viewer.draw_message_before_input()
         arg = input()
         self.viewer.draw_message_after_input(arg)
@@ -27,6 +34,8 @@ class Controller(observer.Subject):
         self.input_parser(arg)
 
     def input_parser(self, arg):
+        logging.info("Controller")
+
         if arg in (0, 'S', 's'):
             self.hero.move_south()
         elif arg in (1, 'E', 'e'):

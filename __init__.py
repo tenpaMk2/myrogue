@@ -73,13 +73,13 @@ logging.info("add observer to my_keyboard")
 # TurnManagerに追加
 hero_turn_entry = turn.TurnQueueEntryFactory.make_hero_turn_queue(hero._observers[0], 0)
 turn_manager.register(hero_turn_entry)
-logging.info("register hero to turn_manager : next_turn_time %r", hero_turn_entry.next_turn_time)
+logging.info("registered hero to turn_manager : next_turn_time %r", hero_turn_entry.next_turn_time)
 villager1_turn_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(villager1.ai, 0)
 turn_manager.register(villager1_turn_entry)
-logging.info("register villager1 to turn_manager : next_turn_time %r", villager1_turn_entry.next_turn_time)
+logging.info("registered villager1 to turn_manager : next_turn_time %r", villager1_turn_entry.next_turn_time)
 villager2_turn_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(villager2.ai, 0)
 turn_manager.register(villager2_turn_entry)
-logging.info("register villager2 to turn_manager : next_turn_time %r", villager2_turn_entry.next_turn_time)
+logging.info("registered villager2 to turn_manager : next_turn_time %r", villager2_turn_entry.next_turn_time)
 
 
 while True:
