@@ -11,7 +11,7 @@ class Subject(object):
         self._observers = []
 
     def add_observer(self, observer):
-        if not observer in self._observers:
+        if observer not in self._observers:
             self._observers.append(observer)
 
     def remove_observer(self, observer):
