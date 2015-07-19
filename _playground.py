@@ -22,7 +22,7 @@ class BaseB(object):
 
 
 class MultiInhe(BaseA, BaseB):
-    def __init__(self, name:str, time:int):
+    def __init__(self, name: str, time: int):
         BaseA.__init__(self, name)
         # super(MultiInhe, self).__init__(name)
         print(name * time)
@@ -48,6 +48,7 @@ class ConcreteHogePerfect(ConcreteHoge):
     def do_hoge(self):
         super().do_hoge()
         print('concrete')
+
 
 # aaa = TesutoBase() # TypeError
 # aaa.do_hoge()
@@ -184,29 +185,43 @@ print("-----pygame-----------")
 #     # pygame.display.flip()
 #
 # print("終了")
+#
+# print("---------NetworkX-------------")
+# import networkx as nx
+#
+# G = nx.Graph()
+# G.add_node("spam")
+# G.add_edge(1, 2)
+# print(G.nodes())
+# print(G.edges())
+#
+# print("---------A* NetworkX-------------")
+# G = nx.path_graph(5)
+# print(nx.astar_path(G, 0, 4))
+# G = nx.grid_graph(dim=[3, 3])
+# print(G)
+#
+#
+# def dist(a, b):
+#     (x1, y1) = a
+#     (x2, y2) = b
+#     return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+#
+#
+# print(nx.astar_path(G, (0, 0), (2, 2), dist))
+#
+# GG = nx.Graph(G)
+# print(GG.edge)
 
-print("---------NetworkX-------------")
-import networkx as nx
+print("---------------logging performance---------------------")
+import time
+import logging
+logging.basicConfig(level=logging.ERROR)
 
-G = nx.Graph()
-G.add_node("spam")
-G.add_edge(1, 2)
-print(G.nodes())
-print(G.edges())
+start_t = time.clock()
+for k in range(1000000):
+    # logging.debug("uhohoi : %d", (k, ))
+    logging.debug("uhohoi : {0}".format(k))
+end_t = time.clock()
 
-print("---------A* NetworkX-------------")
-G = nx.path_graph(5)
-print(nx.astar_path(G, 0, 4))
-G = nx.grid_graph(dim=[3, 3])
-print(G)
-
-
-def dist(a, b):
-    (x1, y1) = a
-    (x2, y2) = b
-    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
-
-print(nx.astar_path(G, (0,0), (2,2), dist))
-
-GG = nx.Graph(G)
-print(GG.edge)
+print("processing time is {0}".format(end_t - start_t))
