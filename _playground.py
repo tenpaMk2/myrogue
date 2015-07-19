@@ -17,15 +17,15 @@ class BaseA(SuperBase):
 
 
 class BaseB(object):
-    def __init__(self, time: int):
-        print("time is : {0}".format(time))
+    def __init__(self, t: int):
+        print("time is : {0}".format(t))
 
 
 class MultiInhe(BaseA, BaseB):
-    def __init__(self, name: str, time: int):
+    def __init__(self, name: str, t: int):
         BaseA.__init__(self, name)
         # super(MultiInhe, self).__init__(name)
-        print(name * time)
+        print(name * t)
 
 
 hoge = MultiInhe("unko", 3)
