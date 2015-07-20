@@ -16,6 +16,7 @@ import turn
 import npcai
 
 
+# FIXME 死亡処理がおかしい。早急に対処すべき。
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
@@ -263,7 +264,7 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
 
 class Villager(Character):
     pose_icon = "V"
-    direction_icons = ['V', 'V', 'V', 'V']
+    direction_icons = ['V'] * 4
 
     def __init__(self,
                  map_model: "MapModel",
@@ -274,10 +275,34 @@ class Villager(Character):
                  ):
         super().__init__(map_model, pos_and_dir, parameter, turn_manager)
         self.comment = comment
-        self.ai = npcai.VillagerAI(self, map_model)
+        self.ai = npcai.VillagerAI(map_model, self)
 
-    def get_comment(self):
-        return self.comment
+    def do_nothing(self):
+        logging.debug("{0}".format(self))
+        self._end_turn()
+
+    def _end_turn(self):
+        queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
+            self.ai,
+            self.parameter.turn_period
+        )
+        self.turn_manager.register(queue_entry)
+
+
+class Enemy(Character):
+    pose_icon = "E"
+    direction_icons = ['E'] * 4
+
+    def __init__(self,
+                 map_model: "MapModel",
+                 pos_and_dir: "PositionAndDirection",
+                 parameter: "Parameter",
+                 turn_manager: "turn.TurnManager",
+                 comment: str="I'm enemy."
+                 ):
+        super().__init__(map_model, pos_and_dir, parameter, turn_manager)
+        self.comment = comment
+        self.ai = npcai.EnemyAI(map_model, self)
 
     def do_nothing(self):
         logging.debug("{0}".format(self))
@@ -318,25 +343,27 @@ PARAMETERS_DIRECTORY = os.path.join("parameters")
 class ParameterFactory(object):
     @staticmethod
     def make_hero():
-        hero_file = os.path.join(PARAMETERS_DIRECTORY, "default_hero_000.json")
-        hero_parameter = ParameterFactory._load_parameter(hero_file)
-        parameter = ParameterFactory._make_parameter_from_json(hero_parameter)
-
-        return parameter
+        file_name = "default_hero_000.json"
+        return ParameterFactory._load_parameter(file_name)
 
     @staticmethod
     def make_villager():
-        villager_file = os.path.join(PARAMETERS_DIRECTORY, "default_villager_000.json")
-        villager_parameter = ParameterFactory._load_parameter(villager_file)
-        parameter = ParameterFactory._make_parameter_from_json(villager_parameter)
-
-        return parameter
+        file_name = "default_villager_000.json"
+        return ParameterFactory._load_parameter(file_name)
 
     @staticmethod
-    def _load_parameter(file_path):
+    def make_enemy():
+        file_name = "default_enemy_000.json"
+        return ParameterFactory._load_parameter(file_name)
+
+    @staticmethod
+    def _load_parameter(file_name):
+        file_path = os.path.join(PARAMETERS_DIRECTORY, file_name)
+
         with open(file_path, mode='r', encoding="utf-8") as f:
             parameter_json = json.load(f)
-        return parameter_json
+
+        return ParameterFactory._make_parameter_from_json(parameter_json)
 
     @staticmethod
     def _make_parameter_from_json(json_parameter):
