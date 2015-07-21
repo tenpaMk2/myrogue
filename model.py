@@ -16,7 +16,6 @@ import turn
 import npcai
 
 
-# FIXME 死亡処理がおかしい。早急に対処すべき。
 # TODO シーンの管理者が必要。Observerの作成者はこいつに任せる予定。
 # TODO MessageModelとMessageViewを用意したいが、Heroが二つもオブジェクトを持つ必要があるなあ。
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
@@ -100,9 +99,10 @@ class MapModel(observer.Subject):
 
     def remove_obstacle(self, obstacle_object: "ObstacleObject"):
         self.obstacle_objects.remove(obstacle_object)
+        logging.info("remove obstacle_object")
 
         self.set_message(obstacle_object, "remove {0}".format(obstacle_object.get_position()))
-        self.notify()
+        # self.notify()
 
 
 class BattleField(object):
@@ -251,7 +251,7 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
         return self.icon
 
     def is_died(self):
-        return True if self.parameter.hp < 0 else False
+        return True if self.parameter.hp <= 0 else False
 
     def die(self):
         self.map_model.remove_obstacle(self)
