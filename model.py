@@ -184,7 +184,7 @@ class Wall(ObstacleObject):
 class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
     pose_icon = 'P'
     comment = "It's a Character"
-    direction_icons = ['P', 'P', 'P', 'P']
+    direction_icons = ['P'] * 4
 
     def __init__(self, map_model: "MapModel",
                  pos_and_dir: "PositionAndDirection",
@@ -411,6 +411,7 @@ class Parameter(object):
 
         self.turn_period = turn_period
 
+    # noinspection PyMethodMayBeStatic
     def load_parameter(self):
         warnings.warn("not implemented", Warning)
 
