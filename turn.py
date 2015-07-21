@@ -22,6 +22,10 @@ class TurnManager(object):
         self.queue.append(turn_queue_entry)
         self.queue.sort(key=lambda x: x.next_turn_time)
 
+    def remove(self, turn_queue_entry: "TurnQueueEntryBase"):
+        self.queue.remove(turn_queue_entry)
+        logging.info("removed turn_queue_entry")
+
     def update(self):
         current_entry = self.queue.pop(0)
         spent_time = current_entry.next_turn_time

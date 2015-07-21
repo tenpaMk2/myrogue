@@ -255,7 +255,10 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
 
     def die(self):
         self.map_model.remove_obstacle(self)
+        # self.turn_manager.queue
         del self
+
+        logging.info("delete self")
 
     @abstractmethod
     def _end_turn(self):
@@ -275,18 +278,29 @@ class Villager(Character):
                  ):
         super().__init__(map_model, pos_and_dir, parameter, turn_manager)
         self.comment = comment
+
         self.ai = npcai.VillagerAI(map_model, self)
+        self.turn_queue_entry = None
+        """:type : turn.TurnQueueEntryBase"""
 
     def do_nothing(self):
         logging.debug("{0}".format(self))
         self._end_turn()
 
+    def die(self):
+        super(Villager, self).die()
+        self.turn_manager.remove(self.turn_queue_entry)
+        logging.info("removed turn_queue_entry")
+
     def _end_turn(self):
+        logging.info("Villager")
+
         queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
             self.ai,
             self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
+        self.turn_queue_entry = queue_entry
 
 
 class Enemy(Character):
@@ -302,11 +316,19 @@ class Enemy(Character):
                  ):
         super().__init__(map_model, pos_and_dir, parameter, turn_manager)
         self.comment = comment
+
         self.ai = npcai.EnemyAI(map_model, self)
+        self.turn_queue_entry = None
+        """:type : turn.TurnQueueEntryBase"""
 
     def do_nothing(self):
         logging.debug("{0}".format(self))
         self._end_turn()
+
+    def die(self):
+        super(Enemy, self).die()
+        self.turn_manager.remove(self.turn_queue_entry)
+        logging.info("removed turn_queue_entry")
 
     def _end_turn(self):
         queue_entry = turn.TurnQueueEntryFactory.make_npc_turn_queue(
@@ -314,6 +336,7 @@ class Enemy(Character):
             self.parameter.turn_period
         )
         self.turn_manager.register(queue_entry)
+        self.turn_queue_entry = queue_entry
 
 
 class Hero(Character):
