@@ -8,7 +8,8 @@ import logging.config
 logging.config.fileConfig("config/logging.conf")
 
 
-# TODO loggingを使って、イベントメッセージをprintから書き直し。（aiの方との連携はその後。）
+
+# FIXME SとGが同じだった場合（target_positionに到着した場合）の処理がない
 # TODO 斜め移動への対応
 # TODO 距離の計算方法を一元管理
 # TODO Rogue側から呼び出ししやすいように。
@@ -103,17 +104,17 @@ class SearchingMap(object):
     :type goal_pos: (int, int)
     """
 
-    def __init__(self, matrix_map: list):
-        self.height = len(matrix_map)
-        self.width = max([len(row) for row in matrix_map])
+    def __init__(self, parsed_map: list):
+        self.height = len(parsed_map)
+        self.width = max([len(row) for row in parsed_map])
 
-        self.parsed_map = self._make_empty_map(self.height, self.width)
-        self.obstacles_map = self._make_empty_map(self.height, self.width)
+        self.parsed_map = self.make_empty_map(self.height, self.width)
+        self.obstacles_map = self.make_empty_map(self.height, self.width)
 
         self.start_pos = None
         self.goal_pos = None
 
-        for y, row in enumerate(matrix_map):
+        for y, row in enumerate(parsed_map):
             for x, chara in enumerate(row):
                 if chara == MAP.wall:
                     self.parsed_map[y][x] = MAP.wall
@@ -136,6 +137,11 @@ class SearchingMap(object):
                 else:
                     raise Exception("invalid map object!!!!")
 
+        if not self.start_pos:
+            raise Exception("There is NO Starts!!")
+        if not self.goal_pos:
+            raise Exception("There is NO Goals!!")
+
         # TODO これいるかなあ? 別の場所でやった方が良い気がする。
         Node.start_pos = self.start_pos
         Node.goal_pos = self.goal_pos
@@ -150,7 +156,7 @@ class SearchingMap(object):
         print_nested_list(self.parsed_map)
 
     def print_obstacles_map(self):
-        parsed_obstacles_map = self._make_empty_map(self.height, self.width)
+        parsed_obstacles_map = self.make_empty_map(self.height, self.width)
         for y, row in enumerate(self.obstacles_map):
             for x, element in enumerate(row):
                 if element:
@@ -161,7 +167,7 @@ class SearchingMap(object):
         print_nested_list(parsed_obstacles_map)
 
     @staticmethod
-    def _make_empty_map(height: int, width: int, padding_type=None):
+    def make_empty_map(height: int, width: int, padding_type=None):
         return [[padding_type for _ in range(width)] for _ in range(height)]
 
     @staticmethod
@@ -333,7 +339,7 @@ if __name__ == '__main__':
     logging.debug("print obstacles_map")
     s_map.print_obstacles_map()
 
-    astar = Astar(s_map)
+    ast = Astar(s_map)
 
-    astar.print_route_on_map()
-    logging.debug(astar.get_next_position())
+    ast.print_route_on_map()
+    logging.debug(ast.get_next_position())
