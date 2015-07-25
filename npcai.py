@@ -14,32 +14,92 @@ import astar
 
 # TODO やっぱりちゃんと2次元リストをクラス定義した方が良さそう。[y][x]とかやってると絶対ミスする。
 
+class STATE(object):
+    stop = 0
+    wander = 1
+    chase = 2
+    escape = 3
+
+
 class AIBase(metaclass=ABCMeta):
     def __init__(self, map_model: "model.MapModel"):
         self.map_model = map_model
+        self.state = STATE.stop
 
     @abstractmethod
     def act(self):
+        if self.state == STATE.stop:
+            self.stop()
+        elif self.state == STATE.wander:
+            self.wander()
+        elif self.state == STATE.chase:
+            self.chase()
+        elif self.state == STATE.escape:
+            self.escape()
+        else:
+            raise Exception("Invalid STATE!")
+
+    @abstractmethod
+    def stop(self):
+        pass
+
+    @abstractmethod
+    def wander(self):
+        pass
+
+    @abstractmethod
+    def chase(self):
+        pass
+
+    @abstractmethod
+    def escape(self):
         pass
 
 
 class VillagerAI(AIBase):
     def __init__(self, map_model: "model.MapModel", villager: "model.Villager"):
         super(VillagerAI, self).__init__(map_model)
+        self.state = STATE.stop
+
         self.villager = villager
 
     def act(self):
-        # ここにAIのロジック
-        # とりあえず今は何もしない。
+        super(VillagerAI, self).act()
+
+    def stop(self):
+        logging.info("VillagerAI")
+        self.villager.do_nothing()
+
+    def wander(self):
+        logging.info("VillagerAI")
+        self.villager.do_nothing()
+
+    def chase(self):
+        logging.info("VillagerAI")
+        self.villager.do_nothing()
+
+    def escape(self):
+        logging.info("VillagerAI")
         self.villager.do_nothing()
 
 
 class EnemyAI(AIBase):
     def __init__(self, map_model: "model.MapModel", enemy: "model.Enemy"):
         super(EnemyAI, self).__init__(map_model)
+        self.state = STATE.wander
+
         self.enemy = enemy
 
     def act(self):
+        super(EnemyAI, self).act()
+
+    def stop(self):
+        logging.info("EnemyAI")
+        self.enemy.do_nothing()
+
+    def wander(self):
+        logging.info("EnemyAI")
+
         parsed_map = self.return_map_for_astr(self.map_model.obstacle_objects)
         searching_map = astar.SearchingMap(parsed_map)
         logging.info("made searching_map")
@@ -59,9 +119,15 @@ class EnemyAI(AIBase):
         elif [y_e, x_e] == [y_n, x_n + 1]:
             self.enemy.move_west()
         else:
-            # ここにAIのロジック
-            # とりあえず今は何もしない。
             self.enemy.do_nothing()
+
+    def chase(self):
+        logging.info("EnemyAI")
+        self.enemy.do_nothing()
+
+    def escape(self):
+        logging.info("EnemyAI")
+        self.enemy.do_nothing()
 
     def return_map_for_astr(self, obstacle_objects: list):
         height = self.map_model.height
