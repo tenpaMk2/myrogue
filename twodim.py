@@ -7,6 +7,8 @@ import logging.config
 
 logging.config.fileConfig("config/logging.conf")
 
+import copy
+
 
 # TODO listを継承させてもいいか。
 class Made(object):
@@ -40,6 +42,9 @@ class Made(object):
 
     def return_copy_of_nested_list(self):
         return [[value for value in row] for row in self.data]
+
+    def return_deep_copy(self):
+        return copy.deepcopy(self)
 
 
 class Plane(Made):
