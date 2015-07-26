@@ -63,48 +63,62 @@ class FOVMap(object):
         if 0 <= x < self.width and 0 <= y < self.height:
             self.light[y][x] = self.flag
 
-    def _cast_light(self, cx, cy, row, start_slope, end_slope, radius, xx, xy, yx, yy, oct_id):
+    def _cast_light(self, cx, cy, start_row, start_slope, end_slope, radius, xx, xy, yx, yy, oct_id):
         """Recursive lightcasting function"""
         if start_slope < end_slope:
             return
 
+        # radiusは比較するだけなので、平方根を取らなくていい。
         radius_squared = radius * radius
-        for j in range(row, radius + 1):
+        for row in range(start_row, radius + 1):
             # dxとdyはslopeの計算用。dx = x1 - x2 を示す。
-            dx, dy = -j - 1, -j
+            # dxが-2から始まるのは、whileで最初に+1するため。
+            dx, dy = -row - 1, -row
+
             is_previous_cell_blocked_flag = False
-            new_start_slope = start_slope
+
+            # x座標を移動する代わりに、dxを増やす。
             while dx <= 0:
                 dx += 1
+
                 # Translate the dx, dy coordinates into map coordinates:
-                X, Y = cx + dx * xx + dy * xy, cy + dx * yx + dy * yy
+                trans_x = cx + dx * xx + dy * xy
+                trans_y = cy + dx * yx + dy * yy
+
                 # l_slope and r_slope store the slopes of the left and right
                 # extremities of the square we're considering:
-                l_slope, r_slope = (dx - 0.5) / (dy + 0.5), (dx + 0.5) / (dy - 0.5)
+                l_slope = (dx - 0.5) / (dy + 0.5)
+                r_slope = (dx + 0.5) / (dy - 0.5)
+
+                previous_r_slope = (dx - 0.5) / (dy - 0.5)
+
                 if r_slope > start_slope:
                     continue
+
                 elif end_slope > l_slope:
                     break
+
                 else:
                     # Our light beam is touching this square; light it:
                     if dx * dx + dy * dy < radius_squared:
-                        self.set_lit(X, Y)
+                        self.set_lit(trans_x, trans_y)
 
                     if is_previous_cell_blocked_flag:
                         # we're scanning a row of blocked squares:
-                        if self.is_blocked(X, Y):
-                            new_start_slope = r_slope
+                        if self.is_blocked(trans_x, trans_y):
+                            # new_start_slope = r_slope
                             continue
                         else:
                             is_previous_cell_blocked_flag = False
-                            start_slope = new_start_slope
+                            start_slope = previous_r_slope
                     else:
-                        if self.is_blocked(X, Y) and j < radius:
+                        if self.is_blocked(trans_x, trans_y) and row < radius:
                             # This is a blocking square, start a child scan:
                             is_previous_cell_blocked_flag = True
-                            self._cast_light(cx, cy, j + 1, start_slope, l_slope,
+                            self._cast_light(cx, cy, row + 1, start_slope, l_slope,
                                              radius, xx, xy, yx, yy, oct_id + 1)
-                            new_start_slope = r_slope
+                            # new_start_slope = r_slope
+
             # Row is scanned; do next row unless last square was blocked:
             if is_previous_cell_blocked_flag:
                 break
@@ -112,7 +126,7 @@ class FOVMap(object):
     def do_fov(self, cx, cy, radius):
         """Calculate lit squares from the given location and radius"""
         self.flag += 1
-        for octant in range(8):
+        for octant in range(len(self.mult[0])):
             self._cast_light(cx, cy, 1, 1.0, 0.0, radius,
                              self.mult[0][octant], self.mult[1][octant],
                              self.mult[2][octant], self.mult[3][octant], 0)
