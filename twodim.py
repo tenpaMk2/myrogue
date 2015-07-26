@@ -13,6 +13,9 @@ class Made(object):
     def __init__(self, nested_list: list):
         self.data = nested_list
 
+        self.height = len(self.data)
+        self.width = len(self.data[0])
+
     def get_value_at(self, y: int, x: int):
         return self.data[y][x]
 
@@ -70,3 +73,6 @@ if __name__ == '__main__':
     chara.logging()
     end_t = time.clock()
     print("processing time is {0}".format(end_t - start_t))
+
+    print(chara.height)
+    print(chara.width)
