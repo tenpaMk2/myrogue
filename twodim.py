@@ -19,6 +19,9 @@ class Made(object):
     def get_value_at(self, y: int, x: int):
         return self.data[y][x]
 
+    def set_value_at(self, y: int, x: int, value):
+        self.data[y][x] = value
+
     def print(self):
         formatted_str = self._make_formatted_str()
         print(formatted_str)
