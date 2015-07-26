@@ -38,6 +38,9 @@ class Made(object):
     def _return_formatted_str(chara_list: list):
         return "\n".join(["".join(row) for row in chara_list])
 
+    def return_copy_of_nested_list(self):
+        return [[value for value in row] for row in self.data]
+
 
 class Plane(Made):
     def __init__(self, height: int, width: int, padding_value=None):
@@ -79,3 +82,10 @@ if __name__ == '__main__':
 
     print(chara.height)
     print(chara.width)
+
+    print("deep copyのテスト")
+    hage = chara.return_copy_of_nested_list()
+    hage[0][0] = '*'
+    print(hage)
+
+    chara.print()
