@@ -7,6 +7,7 @@ import logging.config
 
 logging.config.fileConfig("config/logging.conf")
 
+import twodim
 
 
 # FIXME SとGが同じだった場合（target_positionに到着した場合）の処理がない
@@ -87,53 +88,49 @@ class NodeList(list):
         # listが空ならFalseであることを利用したpythonicな書き方。
         return nodes[0] if nodes else None
 
-        # removeはlistが持ってるメソッドで十分。よってコメントアウト
-        # def remove(self, node):
-        #     del self[self.index(node)]
-
     def get_minimum_fs_node(self):
         return min(self, key=lambda node: node.fs)
 
 
 class SearchingMap(object):
     """
-    :type parsed_map: list
-    :type obstacles_map: list
+    :type parsed_map: twodim.Chara
+    :type obstacles_map: twodim.Chara
 
     :type start_pos: (int, int)
     :type goal_pos: (int, int)
     """
 
-    def __init__(self, parsed_map: list):
-        self.height = len(parsed_map)
-        self.width = max([len(row) for row in parsed_map])
+    def __init__(self, formatted_map: list):
+        self.height = len(formatted_map)
+        self.width = max([len(row) for row in formatted_map])
 
-        self.parsed_map = self.make_empty_map(self.height, self.width)
-        self.obstacles_map = self.make_empty_map(self.height, self.width)
+        self.parsed_map = self.make_empty_map(self.height, self.width, padding_type=None)
+        self.obstacles_map = self.make_empty_map(self.height, self.width, padding_type=None)
 
         self.start_pos = None
         self.goal_pos = None
 
-        for y, row in enumerate(parsed_map):
+        for y, row in enumerate(formatted_map):
             for x, chara in enumerate(row):
                 if chara == MAP.wall:
-                    self.parsed_map[y][x] = MAP.wall
-                    self.obstacles_map[y][x] = True
+                    self.parsed_map.set_value_at(y, x, MAP.wall)
+                    self.obstacles_map.set_value_at(y, x, True)
                 elif chara == MAP.start:
                     if not self.start_pos:
-                        self.parsed_map[y][x] = MAP.start
+                        self.parsed_map.set_value_at(y, x, MAP.start)
                         self.start_pos = (y, x)
                     else:
                         raise Exception("There are multiple Starts!!")
                 elif chara == MAP.goal:
                     if not self.goal_pos:
-                        self.parsed_map[y][x] = MAP.goal
+                        self.parsed_map.set_value_at(y, x, MAP.goal)
                         self.goal_pos = (y, x)
                     else:
                         raise Exception("There are multiply Goals!!")
                 elif chara == MAP.nothing:
-                    self.parsed_map[y][x] = MAP.nothing
-                    self.obstacles_map[y][x] = False
+                    self.parsed_map.set_value_at(y, x, MAP.nothing)
+                    self.obstacles_map.set_value_at(y, x, False)
                 else:
                     raise Exception("invalid map object!!!!")
 
@@ -147,28 +144,23 @@ class SearchingMap(object):
         Node.goal_pos = self.goal_pos
 
     def is_obstacle_at(self, y: int, x: int):
-        return self.obstacles_map[y][x]
+        return self.obstacles_map.get_value_at(y, x)
 
     def is_outside_of_map(self, y: int, x: int):
         return False if (0 < y < self.height and 0 < x < self.width) else False
 
     def print_parsed_map(self):
-        print_nested_list(self.parsed_map)
+        self.parsed_map.logging()
 
     def print_obstacles_map(self):
-        parsed_obstacles_map = self.make_empty_map(self.height, self.width)
-        for y, row in enumerate(self.obstacles_map):
-            for x, element in enumerate(row):
-                if element:
-                    parsed_obstacles_map[y][x] = '1'
-                else:
-                    parsed_obstacles_map[y][x] = '0'
+        nested_list = self.obstacles_map.return_copy_of_nested_list()
+        parsed_obstacles_map = [['1' if flag else '0' for flag in row] for row in nested_list]
 
         print_nested_list(parsed_obstacles_map)
 
     @staticmethod
     def make_empty_map(height: int, width: int, padding_type=None):
-        return [[padding_type for _ in range(width)] for _ in range(height)]
+        return twodim.Chara(height, width, padding_type)
 
     @staticmethod
     def return_deep_copy_of_nested_list(nested_list):
@@ -286,29 +278,28 @@ class Astar(object):
             n = n.parent_node
 
     def print_route_on_map(self):
-        map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
+        map_buffer = self.searching_map.parsed_map.return_deep_copy()
 
         logging.info("------------------------------------------")
         for node in self._route_nodes:
-            map_buffer[node.pos[0]][node.pos[1]] = '+'
+            y, x = node.pos
+            map_buffer.set_value_at(y, x, '+')
             logging.info("{0} fs : {1}".format(node.pos, node.fs))
 
-        print_nested_list(map_buffer)
+        map_buffer.logging()
 
     def print_open_close_list_on_map(self):
-        map_buffer = self.searching_map.return_deep_copy_of_nested_list(self.searching_map.parsed_map)
+        map_buffer = self.searching_map.parsed_map.return_deep_copy()
 
         for open_node in self.open_list:
-            y = open_node.pos[0]
-            x = open_node.pos[1]
-            map_buffer[y][x] = 'o'
+            y, x = open_node.pos
+            map_buffer.set_value_at(y, x, 'o')
 
         for close_node in self.close_list:
-            y = close_node.pos[0]
-            x = close_node.pos[1]
-            map_buffer[y][x] = 'c'
+            y, x = close_node.pos
+            map_buffer.set_value_at(y, x, 'c')
 
-        print_nested_list(map_buffer)
+        map_buffer.logging()
 
     def has_route_to_goal(self):
         return True if not self.end_node else False
