@@ -100,7 +100,7 @@ class EnemyAI(AIBase):
     def wander(self):
         logging.info("EnemyAI")
 
-        parsed_map = self.return_map_for_astr(self.map_model.obstacle_objects)
+        parsed_map = self.return_map_for_astr()
         searching_map = astar.SearchingMap(parsed_map)
         logging.info("made searching_map")
 
@@ -129,22 +129,22 @@ class EnemyAI(AIBase):
         logging.info("EnemyAI")
         self.enemy.do_nothing()
 
-    def return_map_for_astr(self, obstacle_objects: list):
+    def return_map_for_astr(self):
         height = self.map_model.height
         width = self.map_model.width
 
         # 床と壁の追加
         parsed_map = astar.SearchingMap.make_empty_map(height, width, astar.MAP.nothing)
-        for obs in obstacle_objects:
+        for obs in self.map_model.obstacle_objects:
             y, x = obs.get_position()
-            parsed_map[y][x] = astar.MAP.wall
+            parsed_map.set_value_at(y, x, astar.MAP.wall)
 
         # スタート（自分の位置）の追加
         y_s, x_s = self.enemy.get_position()
-        parsed_map[y_s][x_s] = astar.MAP.start
+        parsed_map.set_value_at(y_s, x_s, astar.MAP.start)
 
         # ゴール（Heroの位置）の追加
         # FIXME Heroの位置を知らなければいけない
-        parsed_map[1][1] = astar.MAP.goal
+        parsed_map.set_value_at(1, 1, astar.MAP.goal)
 
         return parsed_map

@@ -33,11 +33,6 @@ class MAP(object):
     nothing = ' '
 
 
-def print_nested_list(nested_list: list):
-    formatted_str = "\n".join(["".join(row) for row in nested_list])
-    logging.debug('\n' + formatted_str)
-
-
 class Node(object):
     """
     f(n) ... startからgoalまでの最短距離
@@ -94,16 +89,16 @@ class NodeList(list):
 
 class SearchingMap(object):
     """
-    :type parsed_map: twodim.Chara
-    :type obstacles_map: twodim.Chara
+    :type parsed_map: twodim.Made
+    :type obstacles_map: twodim.Made
 
     :type start_pos: (int, int)
     :type goal_pos: (int, int)
     """
 
-    def __init__(self, formatted_map: list):
-        self.height = len(formatted_map)
-        self.width = max([len(row) for row in formatted_map])
+    def __init__(self, formatted_map: "twodim.Made"):
+        self.height = formatted_map.height
+        self.width = formatted_map.width
 
         self.parsed_map = self.make_empty_map(self.height, self.width, padding_type=None)
         self.obstacles_map = self.make_empty_map(self.height, self.width, padding_type=None)
@@ -111,26 +106,32 @@ class SearchingMap(object):
         self.start_pos = None
         self.goal_pos = None
 
-        for y, row in enumerate(formatted_map):
-            for x, chara in enumerate(row):
+        for y in range(self.height):
+            for x in range(self.width):
+                chara = formatted_map.get_value_at(y, x)
+
                 if chara == MAP.wall:
                     self.parsed_map.set_value_at(y, x, MAP.wall)
                     self.obstacles_map.set_value_at(y, x, True)
+
                 elif chara == MAP.start:
                     if not self.start_pos:
                         self.parsed_map.set_value_at(y, x, MAP.start)
                         self.start_pos = (y, x)
                     else:
                         raise Exception("There are multiple Starts!!")
+
                 elif chara == MAP.goal:
                     if not self.goal_pos:
                         self.parsed_map.set_value_at(y, x, MAP.goal)
                         self.goal_pos = (y, x)
                     else:
                         raise Exception("There are multiply Goals!!")
+
                 elif chara == MAP.nothing:
                     self.parsed_map.set_value_at(y, x, MAP.nothing)
                     self.obstacles_map.set_value_at(y, x, False)
+
                 else:
                     raise Exception("invalid map object!!!!")
 
@@ -156,15 +157,12 @@ class SearchingMap(object):
         nested_list = self.obstacles_map.return_copy_of_nested_list()
         parsed_obstacles_map = [['1' if flag else '0' for flag in row] for row in nested_list]
 
-        print_nested_list(parsed_obstacles_map)
+        temp_made = twodim.Made(parsed_obstacles_map)
+        temp_made.logging()
 
     @staticmethod
     def make_empty_map(height: int, width: int, padding_type=None):
         return twodim.Chara(height, width, padding_type)
-
-    @staticmethod
-    def return_deep_copy_of_nested_list(nested_list):
-        return [[chara for chara in row] for row in nested_list]
 
 
 class Astar(object):
@@ -323,8 +321,10 @@ if __name__ == '__main__':
         '#        #          #        #       #',
         '######################################',
     ]
+    nested_map_data = [[ch for ch in row] for row in map_data]
+    formatted_map_data = twodim.Made(nested_map_data)
 
-    s_map = SearchingMap(map_data)
+    s_map = SearchingMap(formatted_map_data)
     logging.debug("print parsed_map")
     s_map.print_parsed_map()
     logging.debug("print obstacles_map")
