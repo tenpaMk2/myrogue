@@ -83,6 +83,7 @@ class VillagerAI(AIBase):
         self.villager.do_nothing()
 
 
+# TODO FOVとastarを組み合わせて、Heroを追跡、攻撃するようにしよう。
 class EnemyAI(AIBase):
     def __init__(self, map_model: "model.MapModel", enemy: "model.Enemy"):
         super(EnemyAI, self).__init__(map_model)
