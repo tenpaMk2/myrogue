@@ -126,7 +126,7 @@ class SearchingMap(object):
                         self.parsed_map.set_value_at(y, x, MAP.goal)
                         self.goal_pos = (y, x)
                     else:
-                        raise Exception("There are multiply Goals!!")
+                        raise Exception("There are multiple Goals!!")
 
                 elif chara == MAP.nothing:
                     self.parsed_map.set_value_at(y, x, MAP.nothing)
