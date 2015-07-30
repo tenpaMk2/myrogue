@@ -145,6 +145,7 @@ class EnemyAI(AIBase):
 
         # ゴール（Heroの位置）の追加
         # FIXME Heroの位置を知らなければいけない
+        # FIXME GとSが同じ座標になる場合がある。
         parsed_map.set_value_at(1, 1, astar.MAP.goal)
 
         return parsed_map
