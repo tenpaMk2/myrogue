@@ -172,7 +172,7 @@ class FOVMap(object):
                 logging.info("block end")
                 break
 
-    def do_fov(self, cx, cy, radius):
+    def do_fov(self, cy, cx, radius):
         """FOVの計算"""
 
         # 視界のクリア。忘れると視界がオンになりっぱなしな部分ができる。
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     d_fov_map = FOVMap(d_parsed_map)
 
     while True:
-        d_fov_map.do_fov(d_current_x, d_current_y, FOV_RADIUS)
+        d_fov_map.do_fov(d_current_y, d_current_x, FOV_RADIUS)
         d_fov_map.display(d_current_x, d_current_y)
 
         key = input()
