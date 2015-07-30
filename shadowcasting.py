@@ -7,11 +7,21 @@ import logging.config
 
 logging.config.fileConfig("config/logging.conf")
 
+import twodim
+
 FOV_RADIUS = 10
 
 
 # 座標は下向き正の右向き生。
 # octantは左上の部分を基準に考える。それゆえに、扱う座標が常に負の値を取ってしまいムズムズする。
+
+class MAP(object):
+    wall = '#'
+    in_fov = '.'
+    out_fov = ' '
+    player = '@'
+    nothing = ' '
+
 
 # FIXME astarの関数と同じもの。2次元のリスト用のモジュールを作った方が良さげ。
 def print_nested_list(nested_list: list):
@@ -19,18 +29,59 @@ def print_nested_list(nested_list: list):
     logging.debug('\n' + formatted_str)
 
 
+class MAPParser(object):
+    """
+    :type parsed_map: twodim.Made
+
+    """
+
+    def __init__(self, formatted_map: "twodim.Made"):
+        self.height = formatted_map.height
+        self.width = formatted_map.width
+
+        self.parsed_map = self.make_empty_map(self.height, self.width, padding_type=None)
+
+        for y in range(self.height):
+            for x in range(self.width):
+                chara = formatted_map.get_value_at(y, x)
+
+                if chara == MAP.wall:
+                    self.parsed_map.set_value_at(y, x, MAP.wall)
+
+                elif chara == MAP.nothing:
+                    self.parsed_map.set_value_at(y, x, MAP.in_fov)
+
+                else:
+                    raise Exception("invalid map object!!!!")
+
+    def is_outside_of_map(self, y: int, x: int):
+        return False if (0 < y < self.height and 0 < x < self.width) else False
+
+    def print_parsed_map(self):
+        self.parsed_map.logging()
+
+    @staticmethod
+    def make_empty_map(height: int, width: int, padding_type=None):
+        return twodim.Chara(height, width, padding_type)
+
+    def get_value_at(self, y: int, x: int):
+        return self.parsed_map.get_value_at(y, x)
+
+
 class FOVMap(object):
     # Multipliers for transforming coordinates to other octants:
-    mult = [
+    transformation_coefficient = [
         [1, 0, 0, -1, -1, 0, 0, 1],
         [0, 1, -1, 0, 0, -1, 1, 0],
         [0, 1, 1, 0, 0, -1, -1, 0],
         [1, 0, 0, 1, -1, 0, 0, -1]
     ]
 
-    def __init__(self, parsed_map):
+    def __init__(self, parsed_map: "MAPParser"):
         self.parsed_map = parsed_map
-        self.width, self.height = len(parsed_map[0]), len(parsed_map)
+        self.height = parsed_map.height
+        self.width = parsed_map.width
+
         self.is_in_fov_flags = self.make_is_in_fov_flags()
 
     def clear_is_in_fov_flags(self):
@@ -39,22 +90,22 @@ class FOVMap(object):
     def make_is_in_fov_flags(self):
         return [[False for _ in range(self.width)] for _ in range(self.height)]
 
-    def get_map_cell(self, x, y):
-        return self.parsed_map[y][x]
+    def get_map_cell(self, y: int, x: int):
+        return self.parsed_map.get_value_at(y, x)
 
-    def is_blocked(self, x, y):
+    def is_blocked(self, y: int, x: int):
         return (x < 0 or y < 0
                 or x >= self.width or y >= self.height
-                or self.parsed_map[y][x] == "#")
+                or self.parsed_map.get_value_at(y, x) == MAP.wall)
 
-    def is_in_fov(self, x, y):
+    def is_in_fov(self, y: int, x: int):
         return self.is_in_fov_flags[y][x]
 
-    def set_in_fov(self, x, y):
+    def set_in_fov(self, y: int, x: int):
         if 0 <= x < self.width and 0 <= y < self.height:
             self.is_in_fov_flags[y][x] = True
 
-    def _cast_light(self, cx, cy, start_row, start_slope, end_slope, radius, xx, xy, yx, yy, oct_id):
+    def _cast_light(self, cy, cx, start_row, start_slope, end_slope, radius, xx, xy, yx, yy, oct_id):
         """Recursive lightcasting function"""
 
         logging.info("start_slope : %r", start_slope)
@@ -70,7 +121,8 @@ class FOVMap(object):
         for row in range(start_row, radius + 1):
             # dxとdyはslopeの計算用。dx = x1 - x2 を示す。
             # dxが-2から始まるのは、whileで最初に+1するため。
-            dx, dy = -row - 1, -row
+            dy = -row
+            dx = -row - 1
 
             is_previous_cell_blocked_flag = False
 
@@ -100,12 +152,12 @@ class FOVMap(object):
                     # Our light beam is touching this square; light it:
                     # つまり、start_slopeからend_slopeの間の勾配であり、radius以内であれば視界に入ったと見なす。
                     if (dx ** 2) + (dy ** 2) < radius_squared:
-                        self.set_in_fov(trans_x, trans_y)
+                        self.set_in_fov(trans_y, trans_x)
 
                     if is_previous_cell_blocked_flag:
                         # 一個前の捜査のとき、ブロックであった場合
                         # we're scanning a row of blocked squares:
-                        if self.is_blocked(trans_x, trans_y):
+                        if self.is_blocked(trans_y, trans_x):
                             # ブロックが続いている場合
                             continue
                         else:
@@ -114,12 +166,11 @@ class FOVMap(object):
                             start_slope = previous_r_slope
                     else:
                         # 一個前の捜査のとき、ブロックではなかった場合
-                        if self.is_blocked(trans_x, trans_y) and row < radius:
+                        if self.is_blocked(trans_y, trans_x) and row < radius:
                             # ブロックだった場合、新たなスキャンを開始（新たなスキャンを先に計算する。）
                             # This is a blocking square, start a child scan:
                             is_previous_cell_blocked_flag = True
-                            self._cast_light(cx, cy, row + 1, start_slope, l_slope,
-                                             radius, xx, xy, yx, yy, oct_id + 1)
+                            self._cast_light(cy, cx, row + 1, start_slope, l_slope, radius, xx, xy, yx, yy, oct_id + 1)
 
             # Row is scanned; do next row unless last square was blocked:
             if is_previous_cell_blocked_flag:
@@ -134,20 +185,21 @@ class FOVMap(object):
         self.clear_is_in_fov_flags()
 
         # 8つの3角形に分けて計算。wiki参照。
-        for octant in range(len(self.mult[0])):
+        for octant in range(len(self.transformation_coefficient[0])):
             logging.info("----------start octant : %r----------", octant)
-            self._cast_light(cx, cy, 1, 1.0, 0.0, radius,
-                             self.mult[0][octant], self.mult[1][octant],
-                             self.mult[2][octant], self.mult[3][octant], 0)
+            self._cast_light(cy, cx, 1, 1.0, 0.0, radius, self.transformation_coefficient[0][octant],
+                             self.transformation_coefficient[1][octant], self.transformation_coefficient[2][octant],
+                             self.transformation_coefficient[3][octant], 0)
 
     def display(self, current_x, current_y):
         """マップの表示"""
 
         map_buffer = [
             [
-                '@' if (x == current_x and y == current_y) else
-                self.get_map_cell(x, y) if self.is_in_fov(x, y) else
-                ' '
+                MAP.player if (x == current_x and y == current_y) else
+                MAP.wall if self.is_in_fov(y, x) and self.get_map_cell(y, x) == MAP.wall else
+                MAP.in_fov if self.is_in_fov(y, x) else
+                MAP.out_fov
                 for x in range(self.width)] for y in range(self.height)]
 
         print_nested_list(map_buffer)
@@ -156,27 +208,31 @@ class FOVMap(object):
 if __name__ == '__main__':
     map_data = [
         "###########################################################",
-        "#...........#.............................................#",
-        "#...........#........#....................................#",
-        "#.....................#...................................#",
-        "#....####..............#..................................#",
-        "#.......#.......................#####################.....#",
-        "#.......#...........................................#.....#",
-        "#.......#...........##..............................#.....#",
-        "#####........#......##..........##################..#.....#",
-        "#...#...........................#................#..#.....#",
-        "#...#............#..............#................#..#.....#",
-        "#...............................#..###############..#.....#",
-        "#...............................#...................#.....#",
-        "#...............................#...................#.....#",
-        "#...............................#####################.....#",
-        "#.........................................................#",
-        "#.........................................................#",
+        "#           #                                             #",
+        "#           #        #                                    #",
+        "#                     #                                   #",
+        "#    ####              #                                  #",
+        "#       #                       #####################     #",
+        "#       #                                           #     #",
+        "#       #           ##                              #     #",
+        "#####        #      ##          ##################  #     #",
+        "#   #                           #                #  #     #",
+        "#   #            #              #                #  #     #",
+        "#                               #  ###############  #     #",
+        "#                               #                   #     #",
+        "#                               #                   #     #",
+        "#                               #####################     #",
+        "#                                                         #",
+        "#                                                         #",
         "###########################################################"
     ]
+    nested_map_data = [[ch for ch in row] for row in map_data]
+    formatted_map_data = twodim.Made(nested_map_data)
+
+    d_parsed_map = MAPParser(formatted_map_data)
 
     d_current_x, d_current_y = 36, 13
-    d_fov_map = FOVMap(map_data)
+    d_fov_map = FOVMap(d_parsed_map)
 
     while True:
         d_fov_map.do_fov(d_current_x, d_current_y, FOV_RADIUS)
