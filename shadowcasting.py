@@ -23,12 +23,6 @@ class MAP(object):
     nothing = ' '
 
 
-# FIXME astarの関数と同じもの。2次元のリスト用のモジュールを作った方が良さげ。
-def print_nested_list(nested_list: list):
-    formatted_str = "\n".join(["".join(row) for row in nested_list])
-    logging.debug('\n' + formatted_str)
-
-
 class MAPParser(object):
     """
     :type parsed_map: twodim.Made
@@ -194,7 +188,7 @@ class FOVMap(object):
     def display(self, current_x, current_y):
         """マップの表示"""
 
-        map_buffer = [
+        map_list = [
             [
                 MAP.player if (x == current_x and y == current_y) else
                 MAP.wall if self.is_in_fov(y, x) and self.get_map_cell(y, x) == MAP.wall else
@@ -202,7 +196,8 @@ class FOVMap(object):
                 MAP.out_fov
                 for x in range(self.width)] for y in range(self.height)]
 
-        print_nested_list(map_buffer)
+        map_buffer = twodim.Made(map_list)
+        map_buffer.logging()
 
 
 if __name__ == '__main__':
