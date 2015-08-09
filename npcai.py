@@ -13,8 +13,6 @@ import astar
 import shadowcasting
 
 
-# TODO やっぱりちゃんと2次元リストをクラス定義した方が良さそう。[y][x]とかやってると絶対ミスする。
-
 class STATE(object):
     stop = 0
     wander = 1

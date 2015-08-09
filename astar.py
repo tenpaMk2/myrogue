@@ -12,7 +12,6 @@ import twodim
 
 # TODO 斜め移動への対応
 # TODO 距離の計算方法を一元管理
-# TODO Rogue側から呼び出ししやすいように。
 
 class DIRECTION(object):
     north = 0

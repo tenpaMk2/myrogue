@@ -22,8 +22,7 @@ import npcai
 # TODO save関連はCSVモジュールを使うといいかもね。当分先の話。
 
 class MapModel(observer.Subject):
-    # TODO make_roomを実装し、make_map_edgeをinit_map_edgeからmake_roomを呼び出すようにしよう
-    # TODO ダンジョンの生成系メソッドを分離すべき。クラス肥大化しすぎ。
+    # TODO dungeon_generatorとの連携を急げ
 
     def __init__(self, size: (int, int)):
         observer.Subject.__init__(self)
