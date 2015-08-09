@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
+# modified from http://d.hatena.ne.jp/pashango_p/20090713/1247455609
 
 import logging
 import logging.config
