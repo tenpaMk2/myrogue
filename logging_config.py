@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
+__author__ = 'tenpaMk2'
+
 import logging
 import sys
 
-__author__ = 'tenpaMk2'
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 
