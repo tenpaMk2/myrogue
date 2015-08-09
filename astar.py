@@ -50,6 +50,9 @@ class Node(object):
     :type owner_list: NodeList
     :type parent_node: Node
     """
+
+    # FIXME 2回目以降の呼び出し時に残ってしまう可能性!!!!!!!!!! バグの匂いしかしない!!!!!!!!!!!!!!!!!
+    # 一応、SearchingMapで残るようなことはない処理になってるが、変更があったらヤバそう。
     start_pos = None  # start位置(x,y)
     goal_pos = None  # goal位置(x,y)
 

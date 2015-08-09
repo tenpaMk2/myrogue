@@ -117,13 +117,11 @@ class EnemyAI(AIBase):
 
     def chase(self):
         logging.info("EnemyAI")
+
+        self.target_pos = self._get_nearest_target_pos()
         logging.info("target_pos : %r", self.target_pos)
 
-        parsed_map = self.return_map_for_astr()
-        searching_map = astar.SearchingMap(parsed_map)
-        logging.info("made searching_map")
-
-        ast = astar.Astar(searching_map)
+        ast = self._make_ast()
         next_position = ast.get_next_position()
         logging.info("next position is %r", next_position)
 
@@ -177,7 +175,7 @@ class EnemyAI(AIBase):
 
         return parsed_map
 
-    def get_nearest_target(self) -> "model.Character":
+    def _get_nearest_target(self) -> "model.Character":
         y_e, x_e = self.enemy.get_position()
 
         # FIXME これもユーティリティモジュールに分けたほうが良さそう。
@@ -188,22 +186,29 @@ class EnemyAI(AIBase):
                    key=calculate_euclid_square_distance)
 
     def _is_in_fov(self, target_pos: list):
-        fov = self._get_fov()
+        fov = self._make_fov()
 
         y_e, x_e = self.enemy.get_position()
         fov.do_fov(y_e, x_e, self.enemy.get_fov_distance())
 
         return fov.is_in_fov(*target_pos)
 
-    def _get_fov(self):
+    def _make_fov(self):
         parsed_map = self.return_map_for_fov()
         return shadowcasting.FOVMap(parsed_map)
 
     def _get_nearest_target_pos(self):
-        nearest_target = self.get_nearest_target()
+        nearest_target = self._get_nearest_target()
 
         if nearest_target:
             return nearest_target.get_position()
         else:
             warnings.warn("No nearest target!!")
             return None
+
+    def _make_ast(self):
+        parsed_map = self.return_map_for_astr()
+        searching_map = astar.SearchingMap(parsed_map)
+        logging.info("made searching_map")
+
+        return astar.Astar(searching_map)
