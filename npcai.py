@@ -99,20 +99,14 @@ class EnemyAI(AIBase):
     def stop(self):
         logging.info("EnemyAI")
 
+        nearest_target = self.get_nearest_target()
+        nearest_target_pos = nearest_target.get_position()
+
         parsed_map = self.return_map_for_fov()
         fov = shadowcasting.FOVMap(parsed_map)
 
         y_e, x_e = self.enemy.get_position()
-
         fov.do_fov(y_e, x_e, self.enemy.get_fov_distance())
-
-        # FIXME これもユーティリティモジュールに分けたほうが良さそう。
-        calculate_euclid_distance = lambda chara: \
-            (chara.get_position()[0] - y_e) ^ 2 + (chara.get_position()[1] - x_e) ^ 2
-
-        nearest_target = min(self.map_model.get_characters_by_hostility(model.HOSTILITY.friend),
-                             key=calculate_euclid_distance)
-        nearest_target_pos = nearest_target.get_position()
 
         if fov.is_in_fov(*nearest_target_pos):
             logging.info("change mode : chase")
@@ -188,3 +182,13 @@ class EnemyAI(AIBase):
             parsed_map.set_value_at(y, x, shadowcasting.MAP.wall)
 
         return parsed_map
+
+    def get_nearest_target(self):
+        y_e, x_e = self.enemy.get_position()
+
+        # FIXME これもユーティリティモジュールに分けたほうが良さそう。
+        calculate_euclid_square_distance = lambda chara: \
+            (chara.get_position()[0] - y_e) ^ 2 + (chara.get_position()[1] - x_e) ^ 2
+
+        return min(self.map_model.get_characters_by_hostility(model.HOSTILITY.friend),
+                   key=calculate_euclid_square_distance)
