@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-__author__ = 'tenpa'
+__author__ = 'tenpaMk2'
 
 import logging
 import logging.config

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-__author__ = 'tenpa'
+__author__ = 'tenpaMk2'
 # modified from http://www.roguebasin.com/index.php?title=Python_shadowcasting_implementation
 
 import logging

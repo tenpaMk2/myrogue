@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-__author__ = 'tenpa'
+__author__ = 'tenpaMk2'
 
 import random
 from abc import ABCMeta, abstractmethod

@@ -3,7 +3,7 @@
 import logging
 import sys
 
-__author__ = 'tenpa'
+__author__ = 'tenpaMk2'
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 

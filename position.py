@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-__author__ = 'tenpa'
+__author__ = 'tenpaMk2'
 
 
 # FIXME 方角が文字の場合と単語の場合とで別々に生成するのは良くなさそう。一括で管理できないかな。
