@@ -9,8 +9,6 @@ logging.config.fileConfig("config/logging.conf")
 
 import twodim
 
-FOV_RADIUS = 10
-
 
 # 座標は下向き正の右向き生。
 # octantは左上の部分を基準に考える。それゆえに、扱う座標が常に負の値を取ってしまいムズムズする。
@@ -145,7 +143,7 @@ class FOVMap(object):
                 else:
                     # Our light beam is touching this square; light it:
                     # つまり、start_slopeからend_slopeの間の勾配であり、radius以内であれば視界に入ったと見なす。
-                    if (dx ** 2) + (dy ** 2) < radius_squared:
+                    if (dx ** 2) + (dy ** 2) <= radius_squared:
                         self.set_in_fov(trans_y, trans_x)
 
                     if is_previous_cell_blocked_flag:
@@ -221,6 +219,8 @@ if __name__ == '__main__':
         "#                                                         #",
         "###########################################################"
     ]
+    FOV_RADIUS = 3
+
     nested_map_data = [[ch for ch in row] for row in map_data]
     formatted_map_data = twodim.Made(nested_map_data)
 
