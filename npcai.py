@@ -8,6 +8,7 @@ import logging.config
 logging.config.fileConfig("config/logging.conf")
 
 from abc import ABCMeta, abstractmethod
+import warnings
 import model
 import astar
 import shadowcasting
@@ -99,16 +100,9 @@ class EnemyAI(AIBase):
     def stop(self):
         logging.info("EnemyAI")
 
-        nearest_target = self.get_nearest_target()
-        nearest_target_pos = nearest_target.get_position()
+        nearest_target_pos = self._get_nearest_target_pos()
 
-        parsed_map = self.return_map_for_fov()
-        fov = shadowcasting.FOVMap(parsed_map)
-
-        y_e, x_e = self.enemy.get_position()
-        fov.do_fov(y_e, x_e, self.enemy.get_fov_distance())
-
-        if fov.is_in_fov(*nearest_target_pos):
+        if self._is_in_fov(nearest_target_pos):
             logging.info("change mode : chase")
             self.state = STATE.chase
             self.target_pos = nearest_target_pos
@@ -183,7 +177,7 @@ class EnemyAI(AIBase):
 
         return parsed_map
 
-    def get_nearest_target(self):
+    def get_nearest_target(self) -> "model.Character":
         y_e, x_e = self.enemy.get_position()
 
         # FIXME これもユーティリティモジュールに分けたほうが良さそう。
@@ -192,3 +186,24 @@ class EnemyAI(AIBase):
 
         return min(self.map_model.get_characters_by_hostility(model.HOSTILITY.friend),
                    key=calculate_euclid_square_distance)
+
+    def _is_in_fov(self, target_pos: list):
+        fov = self._get_fov()
+
+        y_e, x_e = self.enemy.get_position()
+        fov.do_fov(y_e, x_e, self.enemy.get_fov_distance())
+
+        return fov.is_in_fov(*target_pos)
+
+    def _get_fov(self):
+        parsed_map = self.return_map_for_fov()
+        return shadowcasting.FOVMap(parsed_map)
+
+    def _get_nearest_target_pos(self):
+        nearest_target = self.get_nearest_target()
+
+        if nearest_target:
+            return nearest_target.get_position()
+        else:
+            warnings.warn("No nearest target!!")
+            return None
