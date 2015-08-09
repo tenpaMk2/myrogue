@@ -250,6 +250,9 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
     def get_icon(self):
         return self.icon
 
+    def get_fov_distance(self):
+        return self.parameter.fov_distance
+
     def is_died(self):
         return True if self.parameter.hp <= 0 else False
 
@@ -402,7 +405,8 @@ class Parameter(object):
                  mp: int=50,
                  strength: int=20,
                  toughness: int=10,
-                 turn_period: int=5):
+                 turn_period: int=5,
+                 fov_distance: int=5):
         self.hp = hp
         self.mp = mp
 
@@ -410,6 +414,8 @@ class Parameter(object):
         self.toughness = toughness
 
         self.turn_period = turn_period
+
+        self.fov_distance = fov_distance
 
     # noinspection PyMethodMayBeStatic
     def load_parameter(self):

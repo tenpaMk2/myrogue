@@ -108,8 +108,7 @@ class EnemyAI(AIBase):
 
         y_e, x_e = self.enemy.get_position()
 
-        # FIXME enemyの視界範囲も決めないと
-        fov.do_fov(y_e, x_e, 4)
+        fov.do_fov(y_e, x_e, self.enemy.get_fov_distance())
         if fov.is_in_fov(*hero_pos):
             logging.info("change mode : chase")
             self.state = STATE.chase

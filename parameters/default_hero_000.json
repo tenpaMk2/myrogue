@@ -1,7 +1,8 @@
 {
-  "hp": 100,
-  "strength": 20,
-  "turn_period": 5,
+  "fov_distance": 10,
   "toughness": 10,
-  "mp": 50
+  "hp": 100,
+  "mp": 50,
+  "turn_period": 5,
+  "strength": 20
 }
