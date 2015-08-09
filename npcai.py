@@ -98,19 +98,25 @@ class EnemyAI(AIBase):
     def stop(self):
         logging.info("EnemyAI")
 
-        # FIXME ここで、map_modelからHeroのポジションを引っ張ってくる。
-        hero_pos = (2, 7)
-
         parsed_map = self.return_map_for_fov()
         fov = shadowcasting.FOVMap(parsed_map)
 
         y_e, x_e = self.enemy.get_position()
 
         fov.do_fov(y_e, x_e, self.enemy.get_fov_distance())
-        if fov.is_in_fov(*hero_pos):
+
+        # FIXME これもユーティリティモジュールに分けたほうが良さそう。
+        calculate_euclid_distance = lambda chara: \
+            (chara.get_position()[0] - y_e) ^ 2 + (chara.get_position()[1] - x_e) ^ 2
+
+        nearest_target = min(self.map_model.get_characters_by_hostility(model.HOSTILITY.friend),
+                             key=calculate_euclid_distance)
+        nearest_target_pos = nearest_target.get_position()
+
+        if fov.is_in_fov(*nearest_target_pos):
             logging.info("change mode : chase")
             self.state = STATE.chase
-            self.target_pos = hero_pos
+            self.target_pos = nearest_target_pos
             self.enemy.do_nothing()
         else:
             logging.info("Hero not found")
@@ -144,8 +150,6 @@ class EnemyAI(AIBase):
         else:
             self.enemy.do_nothing()
 
-        self.enemy.do_nothing()
-
     def escape(self):
         logging.info("EnemyAI")
         self.enemy.do_nothing()
@@ -165,7 +169,6 @@ class EnemyAI(AIBase):
         parsed_map.set_value_at(y_s, x_s, astar.MAP.start)
 
         # ゴール（Heroの位置）の追加
-        # FIXME Heroの位置を知らなければいけない
         # FIXME GとSが同じ座標になる場合がある。
         y_t, x_t = self.target_pos
         parsed_map.set_value_at(y_t, x_t, astar.MAP.goal)

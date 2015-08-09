@@ -110,6 +110,11 @@ class MapModel(observer.Subject):
         self.set_message(obstacle_object, "remove {0}".format(obstacle_object.get_position()))
         # self.notify()
 
+    def get_characters_by_hostility(self, hostility):
+        return (obje for obje in self.obstacle_objects
+                if isinstance(obje, Character) and obje.hostility == hostility)
+
+
 
 class BattleField(object):
     def __init__(self, map_model: "MapModel", attacker: "Character"):
@@ -200,6 +205,8 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
         self.turn_manager = turn_manager
 
         self.parameter = parameter
+
+        self.hostility = HOSTILITY.neutral
 
         observer.Subject.__init__(self)
 
