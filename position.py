@@ -2,7 +2,16 @@
 # -*- coding:utf-8 -*-
 __author__ = 'tenpa'
 
+
 # FIXME 方角が文字の場合と単語の場合とで別々に生成するのは良くなさそう。一括で管理できないかな。
+
+# FIXME とりあえず創っちゃったけど、後で整理しないとな。
+class DIRECTION(object):
+    north = 0
+    east = 1
+    south = 2
+    west = 3
+
 
 NUM_TO_DIRECTION = dict(enumerate([
     'n',
@@ -12,7 +21,34 @@ NUM_TO_DIRECTION = dict(enumerate([
 DIRECTION_TO_NUM = dict(zip(NUM_TO_DIRECTION.values(), NUM_TO_DIRECTION.keys()))
 DIRECTION_WORD = ['North', 'East', 'South', 'West']
 
-DIRECTION_MOVE = ([-1, 0], [0, 1], [1, 0], [0, -1])
+DIRECTION_MOVE = ((-1, 0), (0, 1), (1, 0), (0, -1))
+
+
+def get_north_pos_of(pos: list) -> list:
+    return get_direction_pos_of(pos, DIRECTION.north)
+
+
+def get_east_pos_of(pos: list) -> list:
+    return get_direction_pos_of(pos, DIRECTION.east)
+
+
+def get_south_pos_of(pos: list) -> list:
+    return get_direction_pos_of(pos, DIRECTION.south)
+
+
+def get_west_pos_of(pos: list) -> list:
+    return get_direction_pos_of(pos, DIRECTION.west)
+
+
+def get_direction_pos_of(pos: list, direction) -> list:
+    return pos[0] + DIRECTION_MOVE[direction][0], pos[1] + DIRECTION_MOVE[direction][1]
+
+
+def get_direction_poses_of(pos: list) -> list:
+    return (get_direction_pos_of(pos, direction) for direction in (DIRECTION.north,
+                                                                   DIRECTION.east,
+                                                                   DIRECTION.south,
+                                                                   DIRECTION.west))
 
 
 class PositionAndDirectionFactory(object):
@@ -77,12 +113,24 @@ class PositionAndDirection(object):
     def get_front_position(self):
         front_y = self.position[0] + DIRECTION_MOVE[self.direction][0]
         front_x = self.position[1] + DIRECTION_MOVE[self.direction][1]
-        return [front_y, front_x]
+        return (front_y, front_x)
 
     def get_position(self):
         # list関数によってdeepcopyしないと、呼出し元でpositionを別の変数hogeに読みこんだとき、
         # hogeが常にリアルタイムなpositionの値を参照してしまう。
-        return list(self.position)
+        return tuple(self.position)
+
+    def get_north_position(self):
+        return get_north_pos_of(self.position)
+
+    def get_east_position(self):
+        return get_east_pos_of(self.position)
+
+    def get_south_position(self):
+        return get_south_pos_of(self.position)
+
+    def get_west_position(self):
+        return get_west_pos_of(self.position)
 
     @property
     def position(self):

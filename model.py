@@ -10,6 +10,7 @@ logging.config.fileConfig("config/logging.conf")
 from abc import ABCMeta, abstractmethod
 import warnings
 
+import position
 from position import PositionAndDirection
 import observer
 import turn
@@ -86,12 +87,12 @@ class MapModel(observer.Subject):
 
         raise Exception("map is collapsed!!!!")
 
-    def get_character_at(self, position):
+    def get_character_at(self, pos):
         # 条件に沿うオブジェクトをリストから高速にサーチする方法。
         # 条件に沿う最初のオブジェクトのみを返す。
         return next(
             (obje for obje in self.obstacle_objects
-             if obje.get_position() == position and isinstance(obje, Character)),
+             if obje.get_position() == pos and isinstance(obje, Character)),
             None)
 
     def set_message(self, map_object: "MapObject", message: str):
@@ -115,20 +116,19 @@ class MapModel(observer.Subject):
                 if isinstance(obje, Character) and obje.hostility == hostility)
 
 
-
 class BattleField(object):
     def __init__(self, map_model: "MapModel", attacker: "Character"):
         self.map_model = map_model
         self.attacker = attacker
 
-    def attack_to(self, position):
-        defender = self.map_model.get_character_at(position)
+    def attack_to(self, pos: list):
+        defender = self.map_model.get_character_at(pos)
 
         if defender is not None:
             self._battle(defender)
-            self.attacker.throw_message("attack to {0} : {1}".format(defender.pose_icon, position))
+            self.attacker.throw_message("attack to {0} : {1}".format(defender.pose_icon, pos))
         else:
-            self.attacker.throw_message("Oops! No one is in front of me. : {0}".format(position))
+            self.attacker.throw_message("Oops! No one is in front of me. : {0}".format(pos))
 
     def _battle(self, defender: "Character"):
         atk_str = self.attacker.parameter.strength
@@ -223,23 +223,19 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
         self._end_turn()
 
     def move_north(self):
-        self.pos_and_dir.turn_north()
-        self._update_icon()
+        self.turn_north()
         self.run()
 
     def move_east(self):
-        self.pos_and_dir.turn_east()
-        self._update_icon()
+        self.turn_east()
         self.run()
 
     def move_south(self):
-        self.pos_and_dir.turn_south()
-        self._update_icon()
+        self.turn_south()
         self.run()
 
     def move_west(self):
-        self.pos_and_dir.turn_west()
-        self._update_icon()
+        self.turn_west()
         self.run()
 
     def attack_front(self):
@@ -248,14 +244,55 @@ class Character(ObstacleObject, observer.Subject, metaclass=ABCMeta):
 
         self._end_turn()
 
+    def attack_to(self, direction):
+        if direction == position.DIRECTION.north:
+            self.turn_north()
+        elif direction == position.DIRECTION.east:
+            self.turn_east()
+        elif direction == position.DIRECTION.south:
+            self.turn_south()
+        elif direction == position.DIRECTION.west:
+            self.turn_west()
+        else:
+            raise Exception("Invalid DIRECTION")
+        self.attack_front()
+
+    def turn_north(self):
+        self.pos_and_dir.turn_north()
+        self._update_icon()
+
+    def turn_east(self):
+        self.pos_and_dir.turn_east()
+        self._update_icon()
+
+    def turn_south(self):
+        self.pos_and_dir.turn_south()
+        self._update_icon()
+
+    def turn_west(self):
+        self.pos_and_dir.turn_west()
+        self._update_icon()
+
+    def get_front_position(self):
+        return self.pos_and_dir.get_front_position()
+
+    def get_north_position(self):
+        return self.pos_and_dir.get_north_position()
+
+    def get_east_position(self):
+        return self.pos_and_dir.get_east_position()
+
+    def get_south_position(self):
+        return self.pos_and_dir.get_south_position()
+
+    def get_west_position(self):
+        return self.pos_and_dir.get_west_position()
+
     def throw_message(self, message: str):
         self.map_model.set_message(self, message)
 
     def _update_icon(self):
         self.icon = self.direction_icons[self.pos_and_dir.direction]
-
-    def get_front_position(self):
-        return self.pos_and_dir.get_front_position()
 
     def get_direction(self):
         return self.pos_and_dir.direction

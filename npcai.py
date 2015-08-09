@@ -12,6 +12,7 @@ import warnings
 import model
 import astar
 import shadowcasting
+import position
 
 
 class STATE(object):
@@ -83,8 +84,6 @@ class VillagerAI(AIBase):
         self.villager.do_nothing()
 
 
-# TODO FOVとastarを組み合わせて、Heroを追跡、攻撃するようにしよう。
-# TODO searchメソッドがいるのかな?
 class EnemyAI(AIBase):
     def __init__(self, map_model: "model.MapModel", enemy: "model.Enemy"):
         super(EnemyAI, self).__init__(map_model)
@@ -121,28 +120,56 @@ class EnemyAI(AIBase):
         self.target_pos = self._get_nearest_target_pos()
         logging.info("target_pos : %r", self.target_pos)
 
-        ast = self._make_ast()
-        next_position = ast.get_next_position()
-        logging.info("next position is %r", next_position)
+        # TODO 近いかどうかではなく、有効射程かどうかで判断したいところ。
+        if self._is_near(self.target_pos):
+            logging.info("target is near!")
+            self._attack_to(self.target_pos)
 
-        y_n, x_n = next_position
-        y_e, x_e = self.enemy.get_position()
-        if [y_e, x_e] == [y_n + 1, x_n]:
-            self.enemy.move_north()
-        elif [y_e, x_e] == [y_n, x_n - 1]:
-            self.enemy.move_east()
-        elif [y_e, x_e] == [y_n - 1, x_n]:
-            self.enemy.move_south()
-        elif [y_e, x_e] == [y_n, x_n + 1]:
-            self.enemy.move_west()
         else:
-            self.enemy.do_nothing()
+            ast = self._make_ast()
+            next_position = ast.get_next_position()
+            logging.info("next position is %r", next_position)
+
+            y_n, x_n = next_position
+            y_e, x_e = self.enemy.get_position()
+            if [y_e, x_e] == [y_n + 1, x_n]:
+                self.enemy.move_north()
+            elif [y_e, x_e] == [y_n, x_n - 1]:
+                self.enemy.move_east()
+            elif [y_e, x_e] == [y_n - 1, x_n]:
+                self.enemy.move_south()
+            elif [y_e, x_e] == [y_n, x_n + 1]:
+                self.enemy.move_west()
+            else:
+                self.enemy.do_nothing()
 
     def escape(self):
         logging.info("EnemyAI")
         self.enemy.do_nothing()
 
-    def return_map_for_astr(self):
+    def _attack_to(self, defender_pos):
+        if defender_pos == self.enemy.get_north_position():
+            self.enemy.attack_to(position.DIRECTION.north)
+
+        elif defender_pos == self.enemy.get_east_position():
+            self.enemy.attack_to(position.DIRECTION.east)
+
+        elif defender_pos == self.enemy.get_south_position():
+            self.enemy.attack_to(position.DIRECTION.south)
+
+        elif defender_pos == self.enemy.get_west_position():
+            self.enemy.attack_to(position.DIRECTION.west)
+
+        else:
+            if self._is_near(defender_pos):
+                raise Exception("Invalid DIRECTION!!")
+            else:
+                raise Exception("Target is too far!!")
+
+    def _is_near(self, pos):
+        return tuple(pos) in position.get_direction_poses_of(self.enemy.get_position())
+
+    def _return_map_for_astr(self):
         height = self.map_model.height
         width = self.map_model.width
 
@@ -157,13 +184,12 @@ class EnemyAI(AIBase):
         parsed_map.set_value_at(y_s, x_s, astar.MAP.start)
 
         # ゴール（Heroの位置）の追加
-        # FIXME GとSが同じ座標になる場合がある。
         y_t, x_t = self.target_pos
         parsed_map.set_value_at(y_t, x_t, astar.MAP.goal)
 
         return parsed_map
 
-    def return_map_for_fov(self):
+    def _return_map_for_fov(self):
         height = self.map_model.height
         width = self.map_model.width
 
@@ -194,7 +220,7 @@ class EnemyAI(AIBase):
         return fov.is_in_fov(*target_pos)
 
     def _make_fov(self):
-        parsed_map = self.return_map_for_fov()
+        parsed_map = self._return_map_for_fov()
         return shadowcasting.FOVMap(parsed_map)
 
     def _get_nearest_target_pos(self):
@@ -207,8 +233,12 @@ class EnemyAI(AIBase):
             return None
 
     def _make_ast(self):
-        parsed_map = self.return_map_for_astr()
+        parsed_map = self._return_map_for_astr()
         searching_map = astar.SearchingMap(parsed_map)
         logging.info("made searching_map")
 
         return astar.Astar(searching_map)
+
+    def _get_north_pos(self):
+        pos = self.enemy.get_position()
+        return (pos[0])
