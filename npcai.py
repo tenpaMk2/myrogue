@@ -83,6 +83,7 @@ class VillagerAI(AIBase):
 
 
 # TODO FOVとastarを組み合わせて、Heroを追跡、攻撃するようにしよう。
+# TODO searchメソッドがいるのかな?
 class EnemyAI(AIBase):
     def __init__(self, map_model: "model.MapModel", enemy: "model.Enemy"):
         super(EnemyAI, self).__init__(map_model)
@@ -128,6 +129,7 @@ class EnemyAI(AIBase):
 
     def chase(self):
         logging.info("EnemyAI")
+        logging.info("target_pos : %r", self.target_pos)
 
         parsed_map = self.return_map_for_astr()
         searching_map = astar.SearchingMap(parsed_map)

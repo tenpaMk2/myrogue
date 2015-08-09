@@ -80,7 +80,9 @@ class PositionAndDirection(object):
         return [front_y, front_x]
 
     def get_position(self):
-        return self.position
+        # list関数によってdeepcopyしないと、呼出し元でpositionを別の変数hogeに読みこんだとき、
+        # hogeが常にリアルタイムなpositionの値を参照してしまう。
+        return list(self.position)
 
     @property
     def position(self):
