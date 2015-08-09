@@ -21,6 +21,13 @@ import npcai
 # TODO Floorが上下左右のFloorをチェックして、iconを変えるようにしたいなあ
 # TODO save関連はCSVモジュールを使うといいかもね。当分先の話。
 
+
+class HOSTILITY(object):
+    friend = 0
+    neutral = 1
+    hostile = 2
+
+
 class MapModel(observer.Subject):
     # TODO dungeon_generatorとの連携を急げ
 
@@ -285,6 +292,8 @@ class Villager(Character):
         self.turn_queue_entry = None
         """:type : turn.TurnQueueEntryBase"""
 
+        self.hostility = HOSTILITY.neutral
+
     def do_nothing(self):
         logging.debug("{0}".format(self))
         self._end_turn()
@@ -323,6 +332,8 @@ class Enemy(Character):
         self.turn_queue_entry = None
         """:type : turn.TurnQueueEntryBase"""
 
+        self.hostility = HOSTILITY.hostile
+
     def do_nothing(self):
         logging.debug("{0}".format(self))
         self._end_turn()
@@ -344,6 +355,12 @@ class Enemy(Character):
 class Hero(Character):
     pose_icon = '@'
     direction_icons = ['^', '>', 'v', '<']
+
+    def __init__(self, map_model: "MapModel", pos_and_dir: "PositionAndDirection", parameter: "Parameter",
+                 turn_manager: "turn.TurnManager"):
+        super().__init__(map_model, pos_and_dir, parameter, turn_manager)
+
+        self.hostility = HOSTILITY.friend
 
     # TODO これも本来はCharacterクラスにあるべき。しかし、NPCがNPCとinteractする処理がまだ定義できない…。
     def interact_to_front(self):
