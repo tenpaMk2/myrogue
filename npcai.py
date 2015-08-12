@@ -238,7 +238,3 @@ class EnemyAI(AIBase):
         logging.info("made searching_map")
 
         return astar.Astar(searching_map)
-
-    def _get_north_pos(self):
-        pos = self.enemy.get_position()
-        return (pos[0])
