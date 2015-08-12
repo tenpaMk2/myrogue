@@ -53,19 +53,19 @@ def get_direction_poses_of(pos: list) -> list:
 
 class PositionAndDirectionFactory(object):
     @staticmethod
-    def make_north_p(position):
+    def make_north_pos_and_dir(position):
         return PositionAndDirection(position, DIRECTION_TO_NUM['n'])
 
     @staticmethod
-    def make_east_p(position):
+    def make_east_pos_and_dir(position):
         return PositionAndDirection(position, DIRECTION_TO_NUM['e'])
 
     @staticmethod
-    def make_south_p(position):
+    def make_south_pos_and_dir(position):
         return PositionAndDirection(position, DIRECTION_TO_NUM['s'])
 
     @staticmethod
-    def make_west_p(position):
+    def make_west_pos_and_dir(position):
         return PositionAndDirection(position, DIRECTION_TO_NUM['w'])
 
 
