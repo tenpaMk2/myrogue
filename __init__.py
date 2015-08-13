@@ -16,6 +16,11 @@ import view
 import observer
 import turn
 
+# TODO ダンジョン自動生成と連携
+# TODO 敵の自動スポーン
+# TODO 敵のバリエーション
+# TODO アイテムの実装
+# TODO pygameとの連携
 
 # Model:Map
 map_model = model.MapModel([5, 20])
