@@ -9,6 +9,7 @@ logging.config.fileConfig("config/logging.conf")
 
 from abc import ABCMeta, abstractmethod
 import warnings
+import random
 
 import position
 from position import PositionAndDirection
@@ -39,6 +40,7 @@ class MapModel(observer.Subject):
         self.message = ''
         self.floor_objects = []
         self.obstacle_objects = []
+        self.item_objects = []  # 後でアイテムを実装したときに使う。床に落ちたアイテムなど。
 
         self._init_floor_objects()
         self.make_map_edge()
@@ -61,9 +63,9 @@ class MapModel(observer.Subject):
     def clear_message(self):
         self.message = ""
 
-    def is_empty_place_at(self, position):
+    def is_empty_place_at(self, pos):
         obstacles_positions = [obje.get_position() for obje in self.obstacle_objects]
-        return position not in obstacles_positions
+        return pos not in obstacles_positions
 
     def interact(self, people: "Character"):
         object_front_position = people.get_front_position()
@@ -72,16 +74,16 @@ class MapModel(observer.Subject):
         self.set_message(interact_object, interact_object.comment)
         self.notify()
 
-    def get_map_object_at(self, position):
+    def get_map_object_at(self, pos):
         obstacle_obje = next(
-            (obje for obje in self.obstacle_objects if obje.get_position() == position),
+            (obje for obje in self.obstacle_objects if obje.get_position() == pos),
             None
         )
 
         if obstacle_obje:
             return obstacle_obje
 
-        floor_obje = next((obje for obje in self.floor_objects if obje.get_position() == position), None)
+        floor_obje = next((obje for obje in self.floor_objects if obje.get_position() == pos), None)
         if floor_obje:
             return floor_obje
 
@@ -131,14 +133,22 @@ class BattleField(object):
             self.attacker.throw_message("Oops! No one is in front of me. : {0}".format(pos))
 
     def _battle(self, defender: "Character"):
-        atk_str = self.attacker.parameter.strength
-        def_tou = defender.parameter.toughness
+        attack_point = self.get_attack_point(self.attacker)
+        defend_mult = self.get_defence_mult(defender)
 
-        logging.info("atk_str : {0}".format(atk_str))
-        logging.info("def_tou : {0}".format(def_tou))
+        logging.info("attack_point : %r", attack_point)
+        logging.info("defend_mul : %r", defend_mult)
 
-        damage = atk_str - def_tou
-        damage = damage if damage > 0 else 0
+        raw_damage = attack_point * defend_mult
+
+        # atk_str = self.attacker.parameter.strength
+        # def_tou = defender.parameter.toughness
+        #
+        # logging.info("atk_str : {0}".format(atk_str))
+        # logging.info("def_tou : {0}".format(def_tou))
+        #
+        # damage = atk_str - def_tou
+        damage = int(raw_damage) if raw_damage > 0 else 0
         logging.info("damage : {0}".format(damage))
 
         defender.parameter.hp -= damage
@@ -147,6 +157,19 @@ class BattleField(object):
         if defender.is_died():
             defender.die()
             logging.info("die!!")
+
+    @staticmethod
+    def get_attack_point(attacker: "Character"):
+        # ここらへんの数字は実際にプレイしてみて臨機応変に変えていこう。
+        attack_mult = 1 + attacker.parameter.strength / 20
+        dice_result = attacker.parameter.get_weapon_dice().roll_dice()
+        return attack_mult * dice_result
+
+    @staticmethod
+    def get_defence_mult(defender: "Character"):
+        defend_mult = 1 + defender.parameter.toughness / 20
+        dice_result = defender.parameter.get_protector_dice().roll_dice()
+        return 1 / (3 + defend_mult * (dice_result / 20))
 
 
 # 全てのマップオブジェクトの基本となるクラス
@@ -480,6 +503,30 @@ class Parameter(object):
     # noinspection PyMethodMayBeStatic
     def load_parameter(self):
         warnings.warn("not implemented", Warning)
+
+    def get_weapon_dice(self):
+        # FIXME 武器を実装したら変更すること。
+        return Dice(2, self.strength, 0)
+
+    def get_protector_dice(self):
+        # FIXME 防具を実装したら変更すること。
+        return Dice(2, self.toughness, 0)
+
+
+class Dice(object):
+    def __init__(self, num: int, side: int, shift: int):
+        self.num = num
+        self.side = side
+        self.shift = shift
+
+    def roll_dice(self):
+        result = self.shift
+        for n_roll in range(self.num):
+            result += random.randint(1, self.side)
+
+        logging.info("roll dice : (%rd%r + %r) -> %r", self.num, self.side, self.shift, result)
+
+        return result
 
 
 if __name__ == '__main__':

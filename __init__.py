@@ -17,6 +17,7 @@ import observer
 import turn
 
 # TODO ダンジョン自動生成と連携
+# TODO アルテリオス式ダメージ計算式をなんとかする。
 # TODO 敵の自動スポーン
 # TODO 敵のバリエーション
 # TODO アイテムの実装
